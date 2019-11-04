@@ -1,0 +1,15 @@
+packages = [
+    'zsh',
+    'git',
+    'exa',
+    'ripgrep',
+    'restic',
+    'neovim',
+    'snapd',
+    'xclip',
+    'curl',
+    'tmux',
+    'tlp',
+    'flameshot',
+    'rxvt-unicode',
+]
