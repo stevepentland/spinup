@@ -50,6 +50,8 @@ impl From<sys_info::LinuxOSReleaseInfo> for SystemDetails {
                 for id in id_like.split(' ') {
                     if let Some(i) = SUPPORTED_OS_VERSIONS.get(id) {
                         current_id = *i;
+                        // We found one, no need to continue
+                        break;
                     }
                 }
             }
