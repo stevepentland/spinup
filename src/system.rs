@@ -47,14 +47,14 @@ impl From<sys_info::LinuxOSReleaseInfo> for SystemDetails {
         }
         if current_id == TargetOperatingSystem::Unknown {
             if let Some(id_like) = info.id_like {
-                for id in id_like.split(" ") {
+                for id in id_like.split(' ') {
                     if let Some(i) = SUPPORTED_OS_VERSIONS.get(id) {
                         current_id = *i;
                     }
                 }
             }
         }
-        return SystemDetails::new(current_id);
+        SystemDetails::new(current_id)
     }
 }
 
