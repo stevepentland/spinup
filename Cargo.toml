@@ -5,6 +5,7 @@ authors = ['Steve Pentland <stevepentland@gmail.com>']
 edition = '2018'
 
 [dependencies]
+clap = '2.33'
 lazy_static = '1.4'
 serde_yaml = '0.8'
 serde_json = '1.0'
