@@ -73,24 +73,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_incompatible() {
-        let sd = SystemDetails::new(TargetOperatingSystem::Unknown);
-        assert!(!sd.is_supported());
-    }
-
-    #[test]
-    fn test_compatible() {
-        let sd = SystemDetails::new(TargetOperatingSystem::Arch);
-        assert!(sd.is_supported());
-    }
-
-    #[test]
-    fn test_current_get() {
-        let sd = SystemDetails::new(TargetOperatingSystem::Arch);
-        assert_eq!(TargetOperatingSystem::Arch, sd.current_os());
-    }
-
-    #[test]
     fn test_from_release_info() {
         let info = sys_info::LinuxOSReleaseInfo {
             id: Some(String::from("arch")),
@@ -112,6 +94,6 @@ mod tests {
             logo: None,
         };
         let sd = SystemDetails::from(info);
-        assert_eq!(TargetOperatingSystem::Arch, sd.current_os());
+        assert_eq!(TargetOperatingSystem::Arch, sd.target_os);
     }
 }
