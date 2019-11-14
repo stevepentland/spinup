@@ -28,13 +28,13 @@ impl SystemDetails {
         SystemDetails { target_os }
     }
 
-    pub fn is_supported(&self) -> bool {
-        self.target_os != TargetOperatingSystem::Unknown
-    }
+    // pub fn is_supported(&self) -> bool {
+    //     self.target_os != TargetOperatingSystem::Unknown
+    // }
 
-    pub fn current_os(&self) -> TargetOperatingSystem {
-        self.target_os
-    }
+    // pub fn current_os(&self) -> TargetOperatingSystem {
+    //     self.target_os
+    // }
 }
 
 impl From<sys_info::LinuxOSReleaseInfo> for SystemDetails {
