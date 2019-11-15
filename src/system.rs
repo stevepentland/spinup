@@ -71,29 +71,86 @@ pub fn extract_distro_details() -> Result<SystemDetails, SpinupError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_from_release_info() {
-        let info = sys_info::LinuxOSReleaseInfo {
-            id: Some(String::from("arch")),
-            id_like: None,
-            name: None,
-            pretty_name: None,
-            version: None,
-            version_id: None,
-            version_codename: None,
-            ansi_color: None,
-            cpe_name: None,
-            build_id: None,
-            variant: None,
-            variant_id: None,
-            home_url: None,
-            bug_report_url: None,
-            support_url: None,
-            documentation_url: None,
-            logo: None,
+    macro_rules! os_info {
+        ( $x:expr, $y:expr ) => {
+            sys_info::LinuxOSReleaseInfo {
+                id: $x,
+                id_like: $y,
+                name: None,
+                pretty_name: None,
+                version: None,
+                version_id: None,
+                version_codename: None,
+                ansi_color: None,
+                cpe_name: None,
+                build_id: None,
+                variant: None,
+                variant_id: None,
+                home_url: None,
+                bug_report_url: None,
+                support_url: None,
+                documentation_url: None,
+                logo: None,
+            };
         };
-        let sd = SystemDetails::from(info);
-        assert_eq!(TargetOperatingSystem::Arch, sd.target_os);
     }
+
+    macro_rules! os_val_test {
+        ( $name:ident, $x:expr, $y:expr, $exp:expr ) => {
+            #[test]
+            fn $name() {
+                let info = os_info!($x, $y);
+                let sd = SystemDetails::from(info);
+                assert_eq!($exp, sd.target_os)
+            }
+        };
+        ( $name:ident, $x:expr, $exp:expr ) => {
+            #[test]
+            fn $name() {
+                let info = os_info!($x, None);
+                let sd = SystemDetails::from(info);
+                assert_eq!($exp, sd.target_os)
+            }
+        };
+    }
+
+    os_val_test!(
+        test_release_info_arch,
+        Some(String::from("arch")),
+        TargetOperatingSystem::Arch
+    );
+    os_val_test!(
+        test_release_info_manjaro,
+        Some(String::from("manjaro")),
+        TargetOperatingSystem::Arch
+    );
+    os_val_test!(
+        test_release_info_id_like_arch,
+        None,
+        Some(String::from("arch")),
+        TargetOperatingSystem::Arch
+    );
+    os_val_test!(
+        test_release_info_id_like_manjaro,
+        None,
+        Some(String::from("manjaro")),
+        TargetOperatingSystem::Arch
+    );
+    os_val_test!(
+        test_release_info_all_none,
+        None,
+        TargetOperatingSystem::Unknown
+    );
+    os_val_test!(
+        test_release_info_unknown_id_arch_id_like,
+        Some(String::from("bsd")),
+        Some(String::from("arch")),
+        TargetOperatingSystem::Arch
+    );
+    os_val_test!(
+        test_release_info_both_unknown,
+        Some(String::from("bsd")),
+        Some(String::from("mac")),
+        TargetOperatingSystem::Unknown
+    );
 }
