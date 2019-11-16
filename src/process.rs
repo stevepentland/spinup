@@ -1,16 +1,21 @@
 use libc;
-// use std::io::Read;
-// use std::process::Command;
+use std::process::Command;
 
-use crate::config::Configuration;
+use crate::{config::Configuration, system::SystemDetails};
 
-pub fn install_packages(config: &Configuration) {
-    if let Some(_packages) = &config.packages {
-        // TODO: Use packages as the args for cmd to
-        // Command::new("ls")
-        //     .args(vec!["-al"])
-        //     .spawn()
-        //     .expect("Whoops");
+pub fn install_packages(config: &Configuration, details: &SystemDetails) {
+    if let Some(packages) = &config.packages {
+        if let Some(pm) = details.package_manager() {
+            let mut c = Command::new(&pm.name);
+            if let Some(install_command) = &pm.install_subcommand {
+                c.arg(install_command);
+            }
+            if let Some(autoconfirm) = &pm.autoconfirm {
+                c.arg(autoconfirm);
+            }
+            c.args(packages);
+            println!("{:?}", c); // Don't run the command, just print for now
+        }
     } else {
         // Print out log message when logging setup
     }

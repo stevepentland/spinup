@@ -16,20 +16,20 @@ use process::{install_packages, process_is_root};
 use system::extract_distro_details;
 
 fn main() -> Result<(), String> {
-    if !process_is_root() {
-        return Err(String::from("This program must be run as root"));
-    }
     let _matches = App::new("Spinup")
         .version(crate_version!())
         .author("Steve Pentland")
         .about("Helps you spin up your new environment!")
         .arg(Arg::with_name("verbose").short("-v"))
         .get_matches();
+    if !process_is_root() {
+        // return Err(String::from("This program must be run as root"));
+    }
     let details = extract_distro_details().unwrap();
     let config = read_in_config("./data/sample.toml").unwrap();
     println!("{:#?}", config);
     println!("{:#?}", details);
-    install_packages(&config);
+    install_packages(&config, &details);
     Ok(())
 }
 

@@ -12,7 +12,40 @@ lazy_static! {
     };
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+lazy_static! {
+    static ref PACKAGE_MANAGERS: HashMap<TargetOperatingSystem, Option<PackageManager>> = {
+        let mut h = HashMap::new();
+        h.insert(
+            TargetOperatingSystem::Arch,
+            Some(PackageManager::new(
+                "pacman",
+                Some("-S"),
+                Some("--noconfirm"),
+            )),
+        );
+        h.insert(TargetOperatingSystem::Unknown, None);
+        h
+    };
+}
+
+#[derive(Debug, Clone)]
+pub struct PackageManager {
+    pub name: String,
+    pub install_subcommand: Option<String>,
+    pub autoconfirm: Option<String>,
+}
+
+impl PackageManager {
+    pub fn new(name: &str, install_subcommand: Option<&str>, autoconfirm: Option<&str>) -> Self {
+        PackageManager {
+            name: String::from(name),
+            install_subcommand: install_subcommand.map(String::from),
+            autoconfirm: autoconfirm.map(String::from),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Copy, Clone, Eq, std::hash::Hash)]
 pub enum TargetOperatingSystem {
     Arch,
     Unknown,
@@ -28,6 +61,13 @@ impl SystemDetails {
         SystemDetails { target_os }
     }
 
+    #[allow(dead_code)]
+    pub fn package_manager(&self) -> Option<&PackageManager> {
+        match PACKAGE_MANAGERS.get(&self.target_os) {
+            Some(pm) => pm.as_ref(),
+            None => None,
+        }
+    }
     // pub fn is_supported(&self) -> bool {
     //     self.target_os != TargetOperatingSystem::Unknown
     // }
