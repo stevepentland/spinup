@@ -23,13 +23,12 @@ fn main() -> Result<(), String> {
         .arg(Arg::with_name("verbose").short("-v"))
         .get_matches();
     if !process_is_root() {
+        // just comment for now, it's a pain to test with root all the time
         // return Err(String::from("This program must be run as root"));
     }
     let details = extract_distro_details().unwrap();
     let config = read_in_config("./data/sample.toml").unwrap();
-    println!("{:#?}", config);
-    println!("{:#?}", details);
-    install_packages(&config, &details);
+    let _ = install_packages(&config, &details);
     Ok(())
 }
 

@@ -11,5 +11,4 @@ packages = [
     'tmux',
     'tlp',
     'flameshot',
-    'rxvt-unicode',
 ]

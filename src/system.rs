@@ -8,27 +8,14 @@ lazy_static! {
         let mut h = HashMap::new();
         h.insert("manjaro", TargetOperatingSystem::Arch);
         h.insert("arch", TargetOperatingSystem::Arch);
+        h.insert("debian", TargetOperatingSystem::Debian);
+        h.insert("ubuntu", TargetOperatingSystem::Ubuntu);
+        h.insert("linuxmint", TargetOperatingSystem::Mint);
         h
     };
 }
 
-lazy_static! {
-    static ref PACKAGE_MANAGERS: HashMap<TargetOperatingSystem, Option<PackageManager>> = {
-        let mut h = HashMap::new();
-        h.insert(
-            TargetOperatingSystem::Arch,
-            Some(PackageManager::new(
-                "pacman",
-                Some("-S"),
-                Some("--noconfirm"),
-            )),
-        );
-        h.insert(TargetOperatingSystem::Unknown, None);
-        h
-    };
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PackageManager {
     pub name: String,
     pub install_subcommand: Option<String>,
@@ -45,9 +32,30 @@ impl PackageManager {
     }
 }
 
+impl From<TargetOperatingSystem> for Option<PackageManager> {
+    fn from(target_os: TargetOperatingSystem) -> Self {
+        match target_os {
+            TargetOperatingSystem::Arch => Some(PackageManager::new(
+                "pacman",
+                Some("-S"),
+                Some("--noconfirm"),
+            )),
+            TargetOperatingSystem::Debian
+            | TargetOperatingSystem::Ubuntu
+            | TargetOperatingSystem::Mint => {
+                Some(PackageManager::new("apt-get", Some("install"), Some("-y")))
+            }
+            TargetOperatingSystem::Unknown => None,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Copy, Clone, Eq, std::hash::Hash)]
 pub enum TargetOperatingSystem {
     Arch,
+    Debian,
+    Ubuntu,
+    Mint,
     Unknown,
 }
 
@@ -62,11 +70,8 @@ impl SystemDetails {
     }
 
     #[allow(dead_code)]
-    pub fn package_manager(&self) -> Option<&PackageManager> {
-        match PACKAGE_MANAGERS.get(&self.target_os) {
-            Some(pm) => pm.as_ref(),
-            None => None,
-        }
+    pub fn package_manager(&self) -> Option<PackageManager> {
+        self.target_os.into()
     }
     // pub fn is_supported(&self) -> bool {
     //     self.target_os != TargetOperatingSystem::Unknown
@@ -112,73 +117,165 @@ pub fn extract_distro_details() -> Result<SystemDetails, SpinupError> {
 mod tests {
     use super::*;
     use paste;
-    macro_rules! os_val_test {
-        ( $name:ident, $x:expr, $y:expr, $exp:expr ) => {
-            paste::item!(
-                #[test]
-                fn [<test_release_info_ $name>]() {
-                    let info = sys_info::LinuxOSReleaseInfo {
-                        id: $x,
-                        id_like: $y,
-                        name: None,
-                        pretty_name: None,
-                        version: None,
-                        version_id: None,
-                        version_codename: None,
-                        ansi_color: None,
-                        cpe_name: None,
-                        build_id: None,
-                        variant: None,
-                        variant_id: None,
-                        home_url: None,
-                        bug_report_url: None,
-                        support_url: None,
-                        documentation_url: None,
-                        logo: None,
-                    };
-                    let sd = SystemDetails::from(info);
-                    assert_eq!($exp, sd.target_os)
-                }
-            );
-        };
-        ( $name:ident, $x:expr, $exp:expr ) => {
-            os_val_test!($name, $x, None, $exp);
+
+    macro_rules! os_value_tests {
+        ($(($name:ident, $x:expr, $y:expr, $exp:expr));+) => {
+            $(
+                paste::item!(
+                    #[test]
+                    fn [<test_release_info_ $name>]() {
+                        let info = sys_info::LinuxOSReleaseInfo {
+                            id: $x,
+                            id_like: $y,
+                            name: None,
+                            pretty_name: None,
+                            version: None,
+                            version_id: None,
+                            version_codename: None,
+                            ansi_color: None,
+                            cpe_name: None,
+                            build_id: None,
+                            variant: None,
+                            variant_id: None,
+                            home_url: None,
+                            bug_report_url: None,
+                            support_url: None,
+                            documentation_url: None,
+                            logo: None,
+                        };
+                        let sd = SystemDetails::from(info);
+                        assert_eq!($exp, sd.target_os)
+                    }
+                );
+            )*
         };
     }
 
-    os_val_test!(
-        arch,
-        Some(String::from("arch")),
-        TargetOperatingSystem::Arch
+    os_value_tests!(
+        (
+            arch,
+            Some(String::from("arch")),
+            None,
+            TargetOperatingSystem::Arch
+        );
+        (
+            manjaro,
+            Some(String::from("manjaro")),
+            None,
+            TargetOperatingSystem::Arch
+        );
+        (
+            id_like_arch,
+            None,
+            Some(String::from("arch")),
+            TargetOperatingSystem::Arch
+        );
+        (
+            id_like_manjaro,
+            None,
+            Some(String::from("manjaro")),
+            TargetOperatingSystem::Arch
+        );
+        (all_none, None, None, TargetOperatingSystem::Unknown);
+        (
+            unknown_id_arch_id_like,
+            Some(String::from("bsd")),
+            Some(String::from("arch")),
+            TargetOperatingSystem::Arch
+        );
+        (
+            both_unknown,
+            Some(String::from("bsd")),
+            Some(String::from("mac")),
+            TargetOperatingSystem::Unknown
+        );
+        (
+            ubuntu,
+            Some(String::from("ubuntu")),
+            None,
+            TargetOperatingSystem::Ubuntu
+        );
+        (
+            ubuntu_no_fallback_to_id_like,
+            Some(String::from("ubuntu")),
+            Some(String::from("debian")),
+            TargetOperatingSystem::Ubuntu
+        );
+        (
+            debian_from_id,
+            Some(String::from("debian")),
+            None,
+            TargetOperatingSystem::Debian
+        );
+        (
+            debian_from_id_like,
+            Some(String::from("somethingunknown")),
+            Some(String::from("debian")),
+            TargetOperatingSystem::Debian
+        );
+        (
+            mint,
+            Some(String::from("linuxmint")),
+            Some(String::from("ubuntu")),
+            TargetOperatingSystem::Mint
+        )
     );
-    os_val_test!(
-        manjaro,
-        Some(String::from("manjaro")),
-        TargetOperatingSystem::Arch
-    );
-    os_val_test!(
-        id_like_arch,
-        None,
-        Some(String::from("arch")),
-        TargetOperatingSystem::Arch
-    );
-    os_val_test!(
-        id_like_manjaro,
-        None,
-        Some(String::from("manjaro")),
-        TargetOperatingSystem::Arch
-    );
-    os_val_test!(all_none, None, TargetOperatingSystem::Unknown);
-    os_val_test!(
-        unknown_id_arch_id_like,
-        Some(String::from("bsd")),
-        Some(String::from("arch")),
-        TargetOperatingSystem::Arch
-    );
-    os_val_test!(
-        both_unknown,
-        Some(String::from("bsd")),
-        Some(String::from("mac")),
-        TargetOperatingSystem::Unknown
+
+    macro_rules! package_manager_tests {
+        ($(($name:ident, $target:expr, $expected:expr));+) => {
+            $(
+                paste::item!(
+                    #[test]
+                    fn [<test_package_manager_from_ $name>]() {
+                        let actual: Option<PackageManager> = $target.into();
+                        assert_eq!($expected, actual);
+                    }
+                );
+            )*
+        };
+    }
+
+    package_manager_tests!(
+        (
+            arch,
+            TargetOperatingSystem::Arch,
+            Some(PackageManager::new(
+                "pacman",
+                Some("-S"),
+                Some("--noconfirm")
+            ))
+        );
+        (
+            debian,
+            TargetOperatingSystem::Debian,
+            Some(PackageManager::new(
+                "apt-get",
+                Some("install"),
+                Some("-y")
+            ))
+        );
+        (
+            ubuntu,
+            TargetOperatingSystem::Ubuntu,
+            Some(PackageManager::new(
+                "apt-get",
+                Some("install"),
+                Some("-y")
+            ))
+        );
+        (
+            mint,
+            TargetOperatingSystem::Mint,
+            Some(PackageManager::new(
+                "apt-get", 
+                Some("install"), 
+                Some("-y")
+            ))
+        );
+        (
+            unknown,
+            TargetOperatingSystem::Unknown,
+            None
+        )
     );
 }

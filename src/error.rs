@@ -2,4 +2,5 @@
 pub enum SpinupError {
     ConfigurationReadError(String),
     SystemDetailsError,
+    //PackageInstallError(String, i32),
 }
