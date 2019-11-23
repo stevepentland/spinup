@@ -12,3 +12,12 @@ packages = [
     'tlp',
     'flameshot',
 ]
+
+[[distro_packages]]
+target_os = 'arch'
+packages = [
+    'bat',
+    'pcsclite',
+    'ccid',
+    'libu2f-host',
+]
