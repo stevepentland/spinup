@@ -1,19 +1,6 @@
-use std::collections::HashMap;
 use sys_info;
 
 use crate::error::SpinupError;
-
-lazy_static! {
-    static ref SUPPORTED_OS_VERSIONS: HashMap<&'static str, TargetOperatingSystem> = {
-        let mut h = HashMap::new();
-        h.insert("manjaro", TargetOperatingSystem::Arch);
-        h.insert("arch", TargetOperatingSystem::Arch);
-        h.insert("debian", TargetOperatingSystem::Debian);
-        h.insert("ubuntu", TargetOperatingSystem::Ubuntu);
-        h.insert("linuxmint", TargetOperatingSystem::Mint);
-        h
-    };
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PackageManager {
@@ -82,22 +69,30 @@ impl From<sys_info::LinuxOSReleaseInfo> for SystemDetails {
     fn from(info: sys_info::LinuxOSReleaseInfo) -> Self {
         let mut current_id: TargetOperatingSystem = TargetOperatingSystem::Unknown;
         if let Some(id) = info.id {
-            if let Some(ver) = SUPPORTED_OS_VERSIONS.get(&id[..]) {
-                current_id = *ver;
-            }
+            current_id = TargetOperatingSystem::from(&id[..])
         }
         if current_id == TargetOperatingSystem::Unknown {
             if let Some(id_like) = info.id_like {
-                for id in id_like.split(' ') {
-                    if let Some(i) = SUPPORTED_OS_VERSIONS.get(id) {
-                        current_id = *i;
-                        // We found one, no need to continue
-                        break;
-                    }
+                if let Some(target) = id_like.split(' ').find(|&name| {
+                    TargetOperatingSystem::from(name) != TargetOperatingSystem::Unknown
+                }) {
+                    current_id = TargetOperatingSystem::from(target);
                 }
             }
         }
         SystemDetails::new(current_id)
+    }
+}
+
+impl From<&str> for TargetOperatingSystem {
+    fn from(name: &str) -> Self {
+        match &name.to_lowercase()[..] {
+            "arch" | "archlinux" | "manjaro" => TargetOperatingSystem::Arch,
+            "debian" => TargetOperatingSystem::Debian,
+            "linuxmint" | "mint" => TargetOperatingSystem::Mint,
+            "ubuntu" => TargetOperatingSystem::Ubuntu,
+            _ => TargetOperatingSystem::Unknown,
+        }
     }
 }
 
