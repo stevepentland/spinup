@@ -1,6 +1,5 @@
 #![deny(clippy::all)]
-#[macro_use]
-extern crate lazy_static;
+
 #[macro_use]
 extern crate clap;
 #[macro_use]
@@ -18,6 +17,7 @@ use config::read_in_config;
 use process::{install_packages, process_is_root};
 use system::extract_distro_details;
 
+#[cfg_attr(tarpaulin, skip)]
 fn main() -> Result<(), String> {
     let _matches = App::new("Spinup")
         .version(crate_version!())
