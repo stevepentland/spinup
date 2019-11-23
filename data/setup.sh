@@ -85,14 +85,6 @@ run_aur_install() {
 	sudo pacman -S --noconfirm --needed base-devel
 	sudo pacman -S --noconfirm yay
 	AUR_PACKAGES=("insync" "google-chrome")
-	# TEMP COMMENT OUT, SEE ABOUT MANUAL INSTALLS ABOVE
-	# nerd-fonts-complete messes up gnome shell font presentation on arch so
-	# install some selected fonts instead to match configs and do others manually
-	# if [ "${XDG_CURRENT_DESKTOP}" == "GNOME" ]; then
-	#	AUR_PACKAGES+=("nerd-fonts-ubuntu-mono" "nerd-fonts-fira-code" "nerd-fonts-source-code-pro")
-	# else
-	#	AUR_PACKAGES+=("nerd-fonts-complete")
-	# fi
 	yay -Sy
 	yay -S --noconfirm "${AUR_PACKAGES[@]}"
 }
