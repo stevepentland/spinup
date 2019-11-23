@@ -3,6 +3,8 @@
 extern crate lazy_static;
 #[macro_use]
 extern crate clap;
+#[macro_use]
+extern crate log;
 
 mod config;
 mod error;
@@ -10,6 +12,7 @@ mod process;
 mod system;
 
 use clap::{App, Arg};
+use flexi_logger::Logger;
 
 use config::read_in_config;
 use process::{install_packages, process_is_root};
@@ -22,6 +25,9 @@ fn main() -> Result<(), String> {
         .about("Helps you spin up your new environment!")
         .arg(Arg::with_name("verbose").short("-v"))
         .get_matches();
+
+    // Create the logger, hardcode debug for now
+    Logger::with_str("trace").start().unwrap();
     if !process_is_root() {
         // just comment for now, it's a pain to test with root all the time
         // return Err(String::from("This program must be run as root"));

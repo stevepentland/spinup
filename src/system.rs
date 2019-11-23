@@ -50,7 +50,7 @@ impl From<TargetOperatingSystem> for Option<PackageManager> {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, Eq, std::hash::Hash)]
+#[derive(Debug, PartialEq, Copy, Clone, Eq)]
 pub enum TargetOperatingSystem {
     Arch,
     Debian,
@@ -69,17 +69,13 @@ impl SystemDetails {
         SystemDetails { target_os }
     }
 
-    #[allow(dead_code)]
     pub fn package_manager(&self) -> Option<PackageManager> {
         self.target_os.into()
     }
-    // pub fn is_supported(&self) -> bool {
-    //     self.target_os != TargetOperatingSystem::Unknown
-    // }
 
-    // pub fn current_os(&self) -> TargetOperatingSystem {
-    //     self.target_os
-    // }
+    pub fn current_os(&self) -> TargetOperatingSystem {
+        self.target_os
+    }
 }
 
 impl From<sys_info::LinuxOSReleaseInfo> for SystemDetails {
@@ -278,4 +274,18 @@ mod tests {
             None
         )
     );
+
+    #[test]
+    fn test_target_os_set() {
+        let expected = TargetOperatingSystem::Arch;
+        let actual = SystemDetails::new(expected);
+        assert_eq!(expected, actual.target_os);
+    }
+
+    #[test]
+    fn test_current_os_reflects_target() {
+        let expected = TargetOperatingSystem::Ubuntu;
+        let actual = SystemDetails::new(expected);
+        assert_eq!(expected, actual.current_os());
+    }
 }
