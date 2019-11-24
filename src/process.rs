@@ -73,7 +73,7 @@ fn handle_process_output(output: std::process::Output) -> Result<(), SpinupError
             Ok(())
         } else {
             use log::{max_level, LevelFilter};
-            info!("Package install returned status of {}", code);
+            warn!("Package install returned status of {}", code);
 
             // Don't bother building trace output unless we're actually using it
             if max_level() == LevelFilter::Trace {
