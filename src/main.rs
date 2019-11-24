@@ -41,7 +41,6 @@ fn main() -> Result<(), String> {
         )
         .get_matches();
 
-    // Create the logger, hardcode debug for now
     let log_level = get_log_level(
         matches.occurrences_of("verbose"),
         matches.is_present("quiet"),
