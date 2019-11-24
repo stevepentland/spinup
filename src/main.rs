@@ -31,10 +31,21 @@ fn main() -> Result<(), String> {
                 .help("Increase the verbosity of the program. This may be specified multiple times")
                 .multiple(true),
         )
+        .arg(
+            Arg::with_name("quiet")
+                .short("q")
+                .help("Supress all program output")
+                .multiple(false)
+                .takes_value(false)
+                .conflicts_with("verbose"),
+        )
         .get_matches();
 
     // Create the logger, hardcode debug for now
-    let log_level = get_log_level(matches.occurrences_of("verbose"));
+    let log_level = get_log_level(
+        matches.occurrences_of("verbose"),
+        matches.is_present("quiet"),
+    );
     Logger::with_str(log_level).start().unwrap();
     if !process_is_root() {
         // just comment for now, it's a pain to test with root all the time
@@ -46,7 +57,10 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-fn get_log_level(verbosity: u64) -> &'static str {
+fn get_log_level(verbosity: u64, is_quiet: bool) -> &'static str {
+    if is_quiet {
+        return "off";
+    }
     match verbosity {
         0 => DEFAULT_LOG_LEVEL,
         1 => "info",
@@ -66,7 +80,7 @@ mod tests {
                 paste::item!(
                     #[test]
                     fn [<test_ensure_ $suffix>]() {
-                        let actual = get_log_level($count);
+                        let actual = get_log_level($count, false);
                         assert_eq!(actual, $expected);
                     }
                 );
@@ -81,6 +95,12 @@ mod tests {
         (triple_verbose_is_trace, 3,"trace");
         (more_than_three_is_trace, 10, "trace")
     );
+
+    #[test]
+    fn test_quiet_is_off() {
+        let actual = get_log_level(0, true);
+        assert_eq!(actual, "off");
+    }
 }
 
 /* TODO:
