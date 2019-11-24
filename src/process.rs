@@ -154,6 +154,7 @@ mod tests {
         let config = Configuration {
             packages: None,
             distro_packages: None,
+            curl_operations: None,
         };
 
         let details = SystemDetails::new(TargetOperatingSystem::Arch);
@@ -168,6 +169,7 @@ mod tests {
         let config = Configuration {
             packages: Some(packages.clone()),
             distro_packages: None,
+            curl_operations: None,
         };
         let details = SystemDetails::new(TargetOperatingSystem::Arch);
         let actual = extract_packages(&config, &details).unwrap();
@@ -184,6 +186,7 @@ mod tests {
                 target_os: "manjaro".into(),
                 packages: Some(distro_pkgs.clone()),
             }]),
+            curl_operations: None,
         };
         let details = SystemDetails::new(TargetOperatingSystem::Arch);
         let actual = extract_packages(&config, &details).unwrap();
@@ -204,6 +207,7 @@ mod tests {
                 target_os: "ubuntu".into(),
                 packages: Some(distro_pkgs.clone()),
             }]),
+            curl_operations: None,
         };
         let details = SystemDetails::new(TargetOperatingSystem::Arch);
         let actual = extract_packages(&config, &details).unwrap();
@@ -231,6 +235,7 @@ mod tests {
                     packages: Some(arch_pkgs.clone()),
                 },
             ]),
+            curl_operations: None,
         };
         let details = SystemDetails::new(TargetOperatingSystem::Arch);
         let actual = extract_packages(&config, &details).unwrap();

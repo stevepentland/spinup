@@ -13,15 +13,15 @@ mod system;
 use clap::{App, Arg};
 use flexi_logger::Logger;
 
-use config::read_in_config;
+use config::{read_in_config, Configuration};
 use process::{install_packages, process_is_root};
 use system::extract_distro_details;
 
 const DEFAULT_LOG_LEVEL: &str = "warn";
 
 #[cfg_attr(tarpaulin, skip)]
-fn main() -> Result<(), String> {
-    let matches = App::new("Spinup")
+fn main() {
+    let mut app = App::new("Spinup")
         .version(crate_version!())
         .author("Steve Pentland")
         .about("Helps you spin up your new environment!")
@@ -34,12 +34,24 @@ fn main() -> Result<(), String> {
         .arg(
             Arg::with_name("quiet")
                 .short("q")
-                .help("Supress all program output")
+                .help("Suppress all program output")
                 .multiple(false)
                 .takes_value(false)
                 .conflicts_with("verbose"),
-        )
-        .get_matches();
+        );
+
+    #[cfg(debug_assertions)]
+    {
+        // TODO: Keep only for development
+        app = app.arg(
+            Arg::with_name("generate")
+                .long("generate")
+                .short("g")
+                .takes_value(false),
+        );
+    }
+
+    let matches = app.get_matches();
 
     let log_level = get_log_level(
         matches.occurrences_of("verbose"),
@@ -52,8 +64,15 @@ fn main() -> Result<(), String> {
     }
     let details = extract_distro_details().unwrap();
     let config = read_in_config("./data/sample.toml").unwrap();
+
+    #[cfg(debug_assertions)]
+    {
+        if matches.is_present("generate") {
+            write_other_config_files(&config);
+        }
+    }
+
     let _ = install_packages(&config, &details);
-    Ok(())
 }
 
 fn get_log_level(verbosity: u64, is_quiet: bool) -> &'static str {
@@ -66,6 +85,20 @@ fn get_log_level(verbosity: u64, is_quiet: bool) -> &'static str {
         2 => "debug",
         _ => "trace",
     }
+}
+
+#[cfg(debug_assertions)]
+fn write_other_config_files(config: &Configuration) {
+    // This is just used to generate other examples from the original toml
+    // to other types
+    use std::fs::File;
+    use std::io::Write;
+    // Write JSON
+    let mut j_file = File::create("./data/sample.json").unwrap();
+    let _ = j_file.write(serde_json::to_string_pretty(&config).unwrap().as_bytes());
+    // Write yaml
+    let mut y_file = File::create("./data/sample.yml").unwrap();
+    let _ = y_file.write(serde_yaml::to_string(&config).unwrap().as_bytes());
 }
 
 #[cfg(test)]

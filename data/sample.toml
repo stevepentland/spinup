@@ -21,3 +21,30 @@ packages = [
     'ccid',
     'libu2f-host',
 ]
+
+[[curl_operations]]
+base_dir = '/home/steve/temp'
+
+[[curl_operations.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
+target = 'Ubuntu Mono Nerd Font Complete.ttf'
+
+[[curl_operations.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
+target = 'Ubuntu Mono Nerd Font Complete.ttf'
+
+[[curl_operations.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
+target = 'Ubuntu Mono Nerd Font Complete.ttf'
+
+[curl_operations.after_complete]
+command = 'rm'
+args = [
+    '-rf',
+    '~/temp',
+]
+
+[[curl_operations]]
+[[curl_operations.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
+target = 'Ubuntu Mono Nerd Font Complete.ttf'

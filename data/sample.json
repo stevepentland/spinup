@@ -1,0 +1,63 @@
+{
+  "packages": [
+    "zsh",
+    "git",
+    "exa",
+    "ripgrep",
+    "restic",
+    "neovim",
+    "snapd",
+    "xclip",
+    "curl",
+    "tmux",
+    "tlp",
+    "flameshot"
+  ],
+  "distro_packages": [
+    {
+      "target_os": "arch",
+      "packages": [
+        "bat",
+        "pcsclite",
+        "ccid",
+        "libu2f-host"
+      ]
+    }
+  ],
+  "curl_operations": [
+    {
+      "base_dir": "/home/steve/temp",
+      "after_complete": {
+        "command": "rm",
+        "args": [
+          "-rf",
+          "~/temp"
+        ]
+      },
+      "files": [
+        {
+          "source": "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf",
+          "target": "Ubuntu Mono Nerd Font Complete.ttf"
+        },
+        {
+          "source": "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf",
+          "target": "Ubuntu Mono Nerd Font Complete.ttf"
+        },
+        {
+          "source": "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf",
+          "target": "Ubuntu Mono Nerd Font Complete.ttf"
+        }
+      ]
+    },
+    {
+      "base_dir": null,
+      "after_complete": null,
+      "files": [
+        {
+          "source": "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf",
+          "target": "Ubuntu Mono Nerd Font Complete.ttf"
+        }
+      ]
+    }
+  ]
+}
