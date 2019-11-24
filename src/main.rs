@@ -34,12 +34,7 @@ fn main() -> Result<(), String> {
         .get_matches();
 
     // Create the logger, hardcode debug for now
-    let log_level = match matches.occurrences_of("verbose") {
-        0 => DEFAULT_LOG_LEVEL,
-        1 => "info",
-        2 => "debug",
-        _ => "trace",
-    };
+    let log_level = get_log_level(matches.occurrences_of("verbose"));
     Logger::with_str(log_level).start().unwrap();
     if !process_is_root() {
         // just comment for now, it's a pain to test with root all the time
@@ -49,6 +44,43 @@ fn main() -> Result<(), String> {
     let config = read_in_config("./data/sample.toml").unwrap();
     let _ = install_packages(&config, &details);
     Ok(())
+}
+
+fn get_log_level(verbosity: u64) -> &'static str {
+    match verbosity {
+        0 => DEFAULT_LOG_LEVEL,
+        1 => "info",
+        2 => "debug",
+        _ => "trace",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use paste;
+
+    macro_rules! log_level_tests {
+        ($(($suffix:ident, $count:expr, $expected:expr));+) => {
+            $(
+                paste::item!(
+                    #[test]
+                    fn [<test_ensure_ $suffix>]() {
+                        let actual = get_log_level($count);
+                        assert_eq!(actual, $expected);
+                    }
+                );
+            )*
+        };
+    }
+
+    log_level_tests!(
+        (default_as_defined, 0, DEFAULT_LOG_LEVEL);
+        (single_verbose_info, 1, "info" );
+        (double_verbose_is_debug, 2, "debug");
+        (triple_verbose_is_trace, 3,"trace");
+        (more_than_three_is_trace, 10, "trace")
+    );
 }
 
 /* TODO:
