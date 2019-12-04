@@ -19,22 +19,13 @@ distro_packages:
       - pcsclite
       - ccid
       - libu2f-host
-curl_operations:
+file_downloads:
   - base_dir: /home/steve/temp
-    after_complete:
-      command: rm
-      args:
-        - "-rf"
-        - ~/temp
-    files:
-      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"
-        target: Ubuntu Mono Nerd Font Complete.ttf
-      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"
-        target: Ubuntu Mono Nerd Font Complete.ttf
-      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"
-        target: Ubuntu Mono Nerd Font Complete.ttf
-  - base_dir: ~
     after_complete: ~
     files:
-      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"
         target: Ubuntu Mono Nerd Font Complete.ttf
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"
+        target: Ubuntu Mono Nerd Font Complete2.ttf
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"
+        target: Ubuntu Mono Nerd Font Complete3.ttf

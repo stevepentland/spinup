@@ -1,7 +1,10 @@
-use serde::{Deserialize, Serialize};
+use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+
+use dirs;
+use serde::{Deserialize, Serialize};
 
 use crate::error::SpinupError;
 
@@ -15,7 +18,7 @@ pub struct DistroPackages {
 pub struct Configuration {
     pub packages: Option<Vec<String>>,
     pub distro_packages: Option<Vec<DistroPackages>>,
-    pub curl_operations: Option<Vec<CurlOperation>>,
+    pub file_downloads: Option<Vec<FileDownloadOperation>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -25,16 +28,16 @@ pub struct CustomCommand {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct CurlFileDefinition {
+pub struct FileDownloadDefinition {
     pub source: String,
     pub target: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct CurlOperation {
+pub struct FileDownloadOperation {
     pub base_dir: Option<String>,
     pub after_complete: Option<CustomCommand>,
-    pub files: Vec<CurlFileDefinition>,
+    pub files: Vec<FileDownloadDefinition>,
 }
 
 pub fn read_in_config(config_path: &str) -> Result<Configuration, SpinupError> {
@@ -118,6 +121,19 @@ fn guess_file_syntax(path: &Path) -> FileSyntax {
         }
     }
     FileSyntax::Unknown
+}
+
+impl FileDownloadOperation {
+    pub fn download_target_base(&self) -> Result<PathBuf, SpinupError> {
+        self.base_dir
+            .as_ref()
+            .map(PathBuf::from)
+            .ok_or(SpinupError::FileDownloadFailed)
+            .or_else(|_| {
+                env::current_dir()
+                    .or_else(|_| dirs::home_dir().ok_or(SpinupError::FileDownloadFailed))
+            })
+    }
 }
 
 #[cfg(test)]

@@ -7,4 +7,5 @@ pub enum SpinupError {
     PackageInstallError(i32),
     ChildProcessSpawnError,
     NoPackageManagerForPlatform,
+    FileDownloadFailed,
 }

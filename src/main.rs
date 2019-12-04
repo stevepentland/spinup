@@ -7,37 +7,58 @@ extern crate log;
 
 mod config;
 mod error;
-mod process;
+mod operations;
 mod system;
 
 use clap::{App, Arg};
 use flexi_logger::Logger;
 
 use config::{read_in_config, Configuration};
-use process::{install_packages, process_is_root};
+use operations::file_downloads::execute_download_operations;
+use operations::packages::{install_packages, process_is_root};
+
 use system::extract_distro_details;
 
 const DEFAULT_LOG_LEVEL: &str = "warn";
 
 #[cfg_attr(tarpaulin, skip)]
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut app = App::new("Spinup")
         .version(crate_version!())
         .author("Steve Pentland")
         .about("Helps you spin up your new environment!")
         .arg(
             Arg::with_name("verbose")
-                .short("-v")
+                .short("v")
+                .long("verbose")
                 .help("Increase the verbosity of the program. This may be specified multiple times")
                 .multiple(true),
         )
         .arg(
             Arg::with_name("quiet")
                 .short("q")
+                .long("quiet")
                 .help("Suppress all program output")
                 .multiple(false)
                 .takes_value(false)
                 .conflicts_with("verbose"),
+        )
+        .arg(
+            Arg::with_name("no-packages")
+                .short("P")
+                .long("no-packages")
+                .help("Don't install packages")
+                .multiple(false)
+                .takes_value(false),
+        )
+        .arg(
+            Arg::with_name("no-files")
+                .short("F")
+                .long("no-files")
+                .help("Don't download files")
+                .multiple(false)
+                .takes_value(false),
         );
 
     #[cfg(debug_assertions)]
@@ -72,7 +93,17 @@ fn main() {
         }
     }
 
-    let _ = install_packages(&config, &details);
+    if !matches.is_present("no-packages") {
+        debug!("Installing packages");
+        let pkg = install_packages(&config, &details);
+        trace!("Package result: {:?}", pkg);
+    }
+
+    if !matches.is_present("no-files") {
+        debug!("Downloading files");
+        let dls = execute_download_operations(&config).await;
+        trace!("Download result: {:?}", dls)
+    }
 }
 
 fn get_log_level(verbosity: u64, is_quiet: bool) -> &'static str {

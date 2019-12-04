@@ -22,29 +22,29 @@ packages = [
     'libu2f-host',
 ]
 
-[[curl_operations]]
+[[file_downloads]]
 base_dir = '/home/steve/temp'
 
-[[curl_operations.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
 target = 'Ubuntu Mono Nerd Font Complete.ttf'
 
-[[curl_operations.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
-target = 'Ubuntu Mono Nerd Font Complete.ttf'
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
+target = 'Ubuntu Mono Nerd Font Complete2.ttf'
 
-[[curl_operations.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
-target = 'Ubuntu Mono Nerd Font Complete.ttf'
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
+target = 'Ubuntu Mono Nerd Font Complete3.ttf'
 
-[curl_operations.after_complete]
-command = 'rm'
-args = [
-    '-rf',
-    '~/temp',
-]
+# [file_downloads.after_complete]
+# command = 'rm'
+# args = [
+#     '-rf',
+#     '~/temp',
+# ]
 
-[[curl_operations]]
-[[curl_operations.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
-target = 'Ubuntu Mono Nerd Font Complete.ttf'
+# [[file_downloads]]
+# [[file_downloads.files]]
+# source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
+# target = 'Ubuntu Mono Nerd Font Complete.ttf'
