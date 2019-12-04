@@ -1,3 +1,4 @@
+use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
@@ -8,26 +9,28 @@ use reqwest::Client;
 use crate::config::{Configuration, FileDownloadDefinition, FileDownloadOperation};
 use crate::error::SpinupError;
 
-pub async fn execute_download_operations(config: &Configuration) -> Result<(), SpinupError> {
-    if let Some(operations) = &config.file_downloads {
-        return join_all(
+pub async fn execute_download_operations(config: &Configuration) -> Result<Vec<()>, SpinupError> {
+    match &config.file_downloads {
+        Some(operations) => join_all(
             operations
                 .iter()
                 .map(|op| execute_download_operation(op))
                 .collect::<Vec<_>>(),
         )
         .await
-        .iter()
-        .fold(
-            Ok(()),
-            |c, n| if let Err(e) = n { Err(e.clone()) } else { c },
-        );
+        .into_iter()
+        .collect(),
+        None => Ok(vec![]),
     }
-    Ok(())
 }
 
 async fn execute_download_operation(operation: &FileDownloadOperation) -> Result<(), SpinupError> {
     let target = operation.download_target_base().unwrap();
+    if !target.exists() {
+        if let Err(_) = fs::create_dir_all(&target) {
+            return Err(SpinupError::FileDownloadFailed);
+        }
+    }
     debug!("{:?}", target);
     let client: Client = Client::new();
     join_all(
