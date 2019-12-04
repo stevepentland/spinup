@@ -26,10 +26,8 @@ pub async fn execute_download_operations(config: &Configuration) -> Result<Vec<(
 
 async fn execute_download_operation(operation: &FileDownloadOperation) -> Result<(), SpinupError> {
     let target = operation.download_target_base().unwrap();
-    if !target.exists() {
-        if let Err(_) = fs::create_dir_all(&target) {
-            return Err(SpinupError::FileDownloadFailed);
-        }
+    if !target.exists() && fs::create_dir_all(&target).is_err() {
+        return Err(SpinupError::FileDownloadFailed);
     }
     debug!("{:?}", target);
     let client: Client = Client::new();
