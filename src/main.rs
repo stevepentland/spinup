@@ -59,6 +59,12 @@ async fn main() -> Result<()> {
                 .help("Don't download files")
                 .multiple(false)
                 .takes_value(false),
+        )
+        .arg(
+            Arg::with_name("CONFIG")
+                .help("The input configuration file")
+                .required(true)
+                .index(1),
         );
 
     #[cfg(debug_assertions)]
@@ -68,7 +74,8 @@ async fn main() -> Result<()> {
             Arg::with_name("generate")
                 .long("generate")
                 .short("g")
-                .takes_value(false),
+                .takes_value(false)
+                .hidden(true),
         );
     }
 
@@ -84,7 +91,7 @@ async fn main() -> Result<()> {
         // return Err(String::from("This program must be run as root"));
     }
     let details = extract_distro_details().unwrap();
-    let config = read_in_config("./data/sample.toml").unwrap();
+    let config = read_in_config(matches.value_of("CONFIG").unwrap())?;
 
     #[cfg(debug_assertions)]
     {

@@ -32,10 +32,13 @@ pub fn install_packages(config: &Configuration, details: &SystemDetails) -> Resu
         log_package_info(&packages);
         details
             .package_manager()
-            .ok_or_else(|| format!(
-                "Unable to find package manager for {:?}",
-                details.current_os()
-            ).into())
+            .ok_or_else(|| {
+                format!(
+                    "Unable to find package manager for {:?}",
+                    details.current_os()
+                )
+                .into()
+            })
             .and_then(|pm| {
                 trace!("Using package manager: {:?}", pm);
                 // TODO: Look into directly using the local libraries (libalpm on Arch, etc)
@@ -63,14 +66,14 @@ fn handle_process_output(output: std::process::Output) -> Result<()> {
             if max_level() == LevelFilter::Trace {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 if stdout.len() > 0 {
-                    trace!("Stdout: \n{}", stdout);
+                    debug!("Stdout: \n{}", stdout);
                 }
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 if stderr.len() > 0 {
-                    warn!("Stderr: \n{}", stderr);
+                    debug!("Stderr: \n{}", stderr);
                 }
             }
-            Err(format!("Package manager returned status of '{}'. Run with higher verbosity to see more output", code).into())
+            Err(format!("Package manager returned status of '{}'.\nRun with higher verbosity to see more output", code).into())
         }
     } else {
         Ok(())
