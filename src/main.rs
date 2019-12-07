@@ -14,16 +14,16 @@ use clap::{App, Arg};
 use flexi_logger::Logger;
 
 use config::{read_in_config, Configuration};
+use error::Result;
 use operations::file_downloads::execute_download_operations;
 use operations::packages::{install_packages, process_is_root};
-
 use system::extract_distro_details;
 
 const DEFAULT_LOG_LEVEL: &str = "warn";
 
 #[cfg_attr(tarpaulin, skip)]
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     let mut app = App::new("Spinup")
         .version(crate_version!())
         .author("Steve Pentland")
@@ -95,15 +95,18 @@ async fn main() {
 
     if !matches.is_present("no-packages") {
         debug!("Installing packages");
-        let pkg = install_packages(&config, &details);
-        trace!("Package result: {:?}", pkg);
+        install_packages(&config, &details)?;
     }
 
     if !matches.is_present("no-files") {
         debug!("Downloading files");
         let dls = execute_download_operations(&config).await;
-        trace!("Download result: {:?}", dls)
+        if let Err(e) = dls {
+            return Err(e);
+        }
     }
+
+    Ok(())
 }
 
 fn get_log_level(verbosity: u64, is_quiet: bool) -> &'static str {

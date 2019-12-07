@@ -1,6 +1,6 @@
 use sys_info;
 
-use crate::error::SpinupError;
+use crate::error::Result;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PackageManager {
@@ -96,12 +96,9 @@ impl From<&str> for TargetOperatingSystem {
     }
 }
 
-pub fn extract_distro_details() -> Result<SystemDetails, SpinupError> {
-    if let Ok(os_release) = sys_info::linux_os_release() {
-        Ok(SystemDetails::from(os_release))
-    } else {
-        Err(SpinupError::SystemDetailsError)
-    }
+pub fn extract_distro_details() -> Result<SystemDetails> {
+    let rel = sys_info::linux_os_release()?;
+    Ok(SystemDetails::from(rel))
 }
 
 #[cfg(test)]

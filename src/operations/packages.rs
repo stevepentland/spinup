@@ -2,7 +2,7 @@ use libc;
 use std::process::{Command, Stdio};
 
 use crate::config::Configuration;
-use crate::error::SpinupError;
+use crate::error::Result;
 use crate::system::{PackageManager, SystemDetails, TargetOperatingSystem};
 
 /// Call the system package manager to install the packages contained
@@ -27,46 +27,30 @@ use crate::system::{PackageManager, SystemDetails, TargetOperatingSystem};
 /// install_packages(&config, &details);
 /// ```
 ///
-pub fn install_packages(
-    config: &Configuration,
-    details: &SystemDetails,
-) -> Result<(), SpinupError> {
+pub fn install_packages(config: &Configuration, details: &SystemDetails) -> Result<()> {
     if let Some(packages) = extract_packages(config, details) {
         log_package_info(&packages);
-        if let Some(pm) = details.package_manager() {
-            trace!("Using package manager: {:?}", pm);
-            // TODO: Look into directly using the local libraries (libalpm on Arch, etc)
-            let mut command = build_command(&packages, &pm);
-            info!("Starting install of {} packages", packages.len());
-
-            let res = command.spawn();
-            match res {
-                Ok(result) => match result.wait_with_output() {
-                    Ok(output) => handle_process_output(output),
-                    Err(o) => {
-                        error!("Error while running install command: {:?}", o);
-                        Err(SpinupError::ChildProcessSpawnError)
-                    }
-                },
-                Err(e) => {
-                    error!("Error encountered while spawning child process: {:?}", e);
-                    Err(SpinupError::ChildProcessSpawnError)
-                }
-            }
-        } else {
-            error!(
+        details
+            .package_manager()
+            .ok_or_else(|| format!(
                 "Unable to find package manager for {:?}",
                 details.current_os()
-            );
-            Err(SpinupError::NoPackageManagerForPlatform)
-        }
+            ).into())
+            .and_then(|pm| {
+                trace!("Using package manager: {:?}", pm);
+                // TODO: Look into directly using the local libraries (libalpm on Arch, etc)
+                let mut command = build_command(&packages, &pm);
+                info!("Starting install of {} packages", packages.len());
+                let output = command.spawn()?.wait_with_output()?;
+                handle_process_output(output)
+            })
     } else {
         warn!("No packages were detected in the configuration file");
         Ok(())
     }
 }
 
-fn handle_process_output(output: std::process::Output) -> Result<(), SpinupError> {
+fn handle_process_output(output: std::process::Output) -> Result<()> {
     if let Some(code) = output.status.code() {
         if code == 0 {
             info!("Package install process completed successfully");
@@ -83,11 +67,10 @@ fn handle_process_output(output: std::process::Output) -> Result<(), SpinupError
                 }
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 if stderr.len() > 0 {
-                    // Maybe stderr should always be shown?
-                    trace!("Stderr: \n{}", stderr);
+                    warn!("Stderr: \n{}", stderr);
                 }
             }
-            Err(SpinupError::PackageInstallError(code))
+            Err(format!("Package manager returned status of '{}'. Run with higher verbosity to see more output", code).into())
         }
     } else {
         Ok(())

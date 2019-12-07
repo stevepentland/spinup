@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use dirs;
 use serde::{Deserialize, Serialize};
 
-use crate::error::SpinupError;
+use crate::error::{Error, Result};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DistroPackages {
@@ -40,31 +40,18 @@ pub struct FileDownloadOperation {
     pub files: Vec<FileDownloadDefinition>,
 }
 
-pub fn read_in_config(config_path: &str) -> Result<Configuration, SpinupError> {
-    if let Ok(target) = PathBuf::from(config_path).canonicalize() {
+pub fn read_in_config(config_path: &str) -> Result<Configuration> {
+    PathBuf::from(config_path).canonicalize().map(|target| {
         if !target.is_file() {
-            return Err(SpinupError::ConfigurationReadError(format!(
-                "{:?} is not a file",
-                target
-            )));
+            return Err(format!("{:?} is not a file", target).into());
         }
 
         let syntax_guess = guess_file_syntax(&target);
-        if let Ok(mut file) = File::open(target) {
+        File::open(target).map(|mut file| {
             let mut contents = String::new();
-            if file.read_to_string(&mut contents).is_ok() {
-                parse_file_contents(contents, syntax_guess)
-            } else {
-                Err(SpinupError::ConfigurationReadError(String::from("")))
-            }
-        } else {
-            Err(SpinupError::ConfigurationReadError(String::from("")))
-        }
-    } else {
-        Err(SpinupError::ConfigurationReadError(String::from(
-            config_path,
-        )))
-    }
+            file.read_to_string(&mut contents).map(|_| parse_file_contents(contents, syntax_guess))?
+        })?
+    })?
 }
 
 #[derive(Debug, PartialEq)]
@@ -78,34 +65,15 @@ enum FileSyntax {
 fn parse_file_contents(
     contents: String,
     assumed_syntax: FileSyntax,
-) -> Result<Configuration, SpinupError> {
+) -> Result<Configuration> {
     match assumed_syntax {
-        FileSyntax::Toml => toml::from_str(&contents).or_else(|e| {
-            Err(SpinupError::ConfigurationReadError(format!(
-                "Error reading toml config: {:?}",
-                e,
-            )))
-        }),
-        FileSyntax::Yaml => serde_yaml::from_str(&contents).or_else(|e| {
-            Err(SpinupError::ConfigurationReadError(format!(
-                "Error reading yaml config: {:?}",
-                e,
-            )))
-        }),
-        FileSyntax::Json => serde_json::from_str(&contents).or_else(|e| {
-            Err(SpinupError::ConfigurationReadError(format!(
-                "Error reading json config: {:?}",
-                e
-            )))
-        }),
+        FileSyntax::Toml => toml::from_str(&contents).or_else(|e| Err(e.into())),
+        FileSyntax::Yaml => serde_yaml::from_str(&contents).or_else(|e| Err(e.into())),
+        FileSyntax::Json => serde_json::from_str(&contents).or_else(|e| Err(e.into())),
         _ => toml::from_str(&contents)
             .or_else(|_| serde_yaml::from_str(&contents))
             .or_else(|_| serde_json::from_str(&contents))
-            .or_else(|_| {
-                Err(SpinupError::ConfigurationReadError(String::from(
-                    "Unable to parse config in any supported format",
-                )))
-            }),
+            .or_else(|_| Err(Error::Other(String::from("Was unable to parse config file contents using any syntax")))),
     }
 }
 
@@ -124,14 +92,12 @@ fn guess_file_syntax(path: &Path) -> FileSyntax {
 }
 
 impl FileDownloadOperation {
-    pub fn download_target_base(&self) -> Result<PathBuf, SpinupError> {
+    pub fn download_target_base(&self) -> Option<PathBuf> {
         self.base_dir
             .as_ref()
             .map(PathBuf::from)
-            .ok_or(SpinupError::FileDownloadFailed)
-            .or_else(|_| {
-                env::current_dir()
-                    .or_else(|_| dirs::home_dir().ok_or(SpinupError::FileDownloadFailed))
+            .or_else(|| {
+                env::current_dir().ok().or_else(dirs::home_dir)
             })
     }
 }
