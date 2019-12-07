@@ -49,7 +49,8 @@ pub fn read_in_config(config_path: &str) -> Result<Configuration> {
         let syntax_guess = guess_file_syntax(&target);
         File::open(target).map(|mut file| {
             let mut contents = String::new();
-            file.read_to_string(&mut contents).map(|_| parse_file_contents(contents, syntax_guess))?
+            file.read_to_string(&mut contents)
+                .map(|_| parse_file_contents(contents, syntax_guess))?
         })?
     })?
 }
@@ -62,10 +63,7 @@ enum FileSyntax {
     Unknown,
 }
 
-fn parse_file_contents(
-    contents: String,
-    assumed_syntax: FileSyntax,
-) -> Result<Configuration> {
+fn parse_file_contents(contents: String, assumed_syntax: FileSyntax) -> Result<Configuration> {
     match assumed_syntax {
         FileSyntax::Toml => toml::from_str(&contents).or_else(|e| Err(e.into())),
         FileSyntax::Yaml => serde_yaml::from_str(&contents).or_else(|e| Err(e.into())),
@@ -73,7 +71,11 @@ fn parse_file_contents(
         _ => toml::from_str(&contents)
             .or_else(|_| serde_yaml::from_str(&contents))
             .or_else(|_| serde_json::from_str(&contents))
-            .or_else(|_| Err(Error::Other(String::from("Was unable to parse config file contents using any syntax")))),
+            .or_else(|_| {
+                Err(Error::Other(String::from(
+                    "Was unable to parse config file contents using any syntax",
+                )))
+            }),
     }
 }
 
@@ -96,9 +98,7 @@ impl FileDownloadOperation {
         self.base_dir
             .as_ref()
             .map(PathBuf::from)
-            .or_else(|| {
-                env::current_dir().ok().or_else(dirs::home_dir)
-            })
+            .or_else(|| env::current_dir().ok().or_else(dirs::home_dir))
     }
 }
 

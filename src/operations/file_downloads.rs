@@ -15,14 +15,17 @@ pub async fn execute_download_operations(config: &Configuration) -> Result<Vec<(
             // I don't really like this at the moment, but the super-nested results of this join_all
             // are giving me a hard time at the moment
             let errors = join_all(operations.iter().map(|op| execute_download_operation(op)))
-                .await.into_iter().filter(Result::is_err).nth(1);
+                .await
+                .into_iter()
+                .filter(Result::is_err)
+                .nth(1);
 
             if let Some(res) = errors {
                 res
             } else {
                 Ok(vec![])
             }
-        },
+        }
         None => Ok(vec![]),
     }
 }

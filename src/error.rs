@@ -66,7 +66,7 @@ impl error::Error for Error {
             Error::SystemDetails(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
             Error::Request(ref err) => Some(err),
-            _ => None
+            _ => None,
         }
     }
 }
