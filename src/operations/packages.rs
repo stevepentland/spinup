@@ -1,5 +1,6 @@
-use libc;
 use std::process::{Command, Stdio};
+
+use super::get_root;
 
 use crate::config::Configuration;
 use crate::error::Result;
@@ -30,6 +31,7 @@ use crate::system::{PackageManager, SystemDetails, TargetOperatingSystem};
 pub fn install_packages(config: &Configuration, details: &SystemDetails) -> Result<()> {
     if let Some(packages) = extract_packages(config, details) {
         log_package_info(&packages);
+        get_root()?;
         details
             .package_manager()
             .ok_or_else(|| {
@@ -121,13 +123,6 @@ fn build_command(packages: &[String], package_manager: &PackageManager) -> Comma
         .stderr(Stdio::piped())
         .stdout(Stdio::piped());
     command
-}
-
-pub fn process_is_root() -> bool {
-    unsafe {
-        let uid = libc::getuid();
-        uid == 0
-    }
 }
 
 #[cfg(test)]

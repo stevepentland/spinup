@@ -5,25 +5,63 @@ extern crate clap;
 #[macro_use]
 extern crate log;
 
-mod config;
-mod error;
-mod operations;
-mod system;
-
 use clap::{App, Arg};
 use flexi_logger::Logger;
 
 use config::{read_in_config, Configuration};
 use error::Result;
 use operations::file_downloads::execute_download_operations;
-use operations::packages::{install_packages, process_is_root};
+use operations::packages::install_packages;
+use operations::process_is_root;
 use system::extract_distro_details;
+
+mod config;
+mod error;
+mod operations;
+mod system;
 
 const DEFAULT_LOG_LEVEL: &str = "warn";
 
+async fn run_app(matches: clap::ArgMatches<'_>) -> Result<()> {
+    let log_level = get_log_level(
+        matches.occurrences_of("verbose"),
+        matches.is_present("quiet"),
+    );
+    Logger::with_str(log_level).start().unwrap();
+    if process_is_root() {
+        error!("spinup should not be run as root");
+        ::std::process::exit(1);
+    }
+
+    let details = extract_distro_details().unwrap();
+    let config = read_in_config(matches.value_of("CONFIG").unwrap())?;
+
+    #[cfg(debug_assertions)]
+    {
+        if matches.is_present("generate") {
+            write_other_config_files(&config);
+        }
+    }
+
+    if !matches.is_present("no-packages") {
+        debug!("Installing packages");
+        install_packages(&config, &details)?;
+    }
+
+    if !matches.is_present("no-files") {
+        debug!("Downloading files");
+        let dls = execute_download_operations(&config).await;
+        if let Err(e) = dls {
+            return Err(e);
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg_attr(tarpaulin, skip)]
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() {
     let mut app = App::new("Spinup")
         .version(crate_version!())
         .author("Steve Pentland")
@@ -81,39 +119,15 @@ async fn main() -> Result<()> {
 
     let matches = app.get_matches();
 
-    let log_level = get_log_level(
-        matches.occurrences_of("verbose"),
-        matches.is_present("quiet"),
-    );
-    Logger::with_str(log_level).start().unwrap();
-    if !process_is_root() {
-        // just comment for now, it's a pain to test with root all the time
-        // return Err(String::from("This program must be run as root"));
-    }
-    let details = extract_distro_details().unwrap();
-    let config = read_in_config(matches.value_of("CONFIG").unwrap())?;
+    let res = run_app(matches).await;
 
-    #[cfg(debug_assertions)]
-    {
-        if matches.is_present("generate") {
-            write_other_config_files(&config);
+    ::std::process::exit(match res {
+        Ok(()) => 0,
+        Err(e) => {
+            error!("{}", e);
+            1
         }
-    }
-
-    if !matches.is_present("no-packages") {
-        debug!("Installing packages");
-        install_packages(&config, &details)?;
-    }
-
-    if !matches.is_present("no-files") {
-        debug!("Downloading files");
-        let dls = execute_download_operations(&config).await;
-        if let Err(e) = dls {
-            return Err(e);
-        }
-    }
-
-    Ok(())
+    });
 }
 
 fn get_log_level(verbosity: u64, is_quiet: bool) -> &'static str {

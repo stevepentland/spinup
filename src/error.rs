@@ -3,6 +3,7 @@ use std::fmt;
 use std::io;
 use std::result;
 
+use flexi_logger;
 use reqwest;
 use serde_json;
 use serde_yaml;
@@ -24,6 +25,7 @@ pub enum Error {
     SystemDetails(sys_info::Error),
     Io(io::Error),
     Request(reqwest::Error),
+    Logger(flexi_logger::FlexiLoggerError),
     Other(String),
 }
 
@@ -44,6 +46,7 @@ impl fmt::Display for Error {
             Error::SystemDetails(ref err) => err.fmt(f),
             Error::Io(ref err) => err.fmt(f),
             Error::Request(ref err) => err.fmt(f),
+            Error::Logger(ref err) => err.fmt(f),
             Error::Other(ref s) => write!(f, "{}", s),
         }
     }
@@ -66,6 +69,7 @@ impl error::Error for Error {
             Error::SystemDetails(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
             Error::Request(ref err) => Some(err),
+            Error::Logger(ref err) => Some(err),
             _ => None,
         }
     }
@@ -125,8 +129,20 @@ impl From<serde_yaml::Error> for Error {
     }
 }
 
+impl From<flexi_logger::FlexiLoggerError> for Error {
+    fn from(err: flexi_logger::FlexiLoggerError) -> Error {
+        Error::Logger(err)
+    }
+}
+
 impl From<String> for Error {
     fn from(msg: String) -> Error {
         Error::Other(msg)
+    }
+}
+
+impl From<&str> for Error {
+    fn from(msg: &str) -> Error {
+        Error::Other(String::from(msg))
     }
 }
