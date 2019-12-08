@@ -9,7 +9,7 @@ use clap::{App, Arg};
 use flexi_logger::Logger;
 
 use config::{read_in_config, Configuration};
-use error::Result;
+use error::{Error, Result};
 use operations::file_downloads::execute_download_operations;
 use operations::packages::install_packages;
 use operations::process_is_root;
@@ -29,8 +29,7 @@ async fn run_app(matches: clap::ArgMatches<'_>) -> Result<()> {
     );
     Logger::with_str(log_level).start().unwrap();
     if process_is_root() {
-        error!("spinup should not be run as root");
-        ::std::process::exit(1);
+        return Err(Error::from("spinup should not be run as root"));
     }
 
     let details = extract_distro_details().unwrap();

@@ -2,6 +2,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use std::process::Command;
 
 use futures::future::join_all;
 use reqwest::Client;
@@ -9,28 +10,18 @@ use reqwest::Client;
 use crate::config::{Configuration, FileDownloadDefinition, FileDownloadOperation};
 use crate::error::{Error, Result};
 
-pub async fn execute_download_operations(config: &Configuration) -> Result<Vec<()>> {
+pub async fn execute_download_operations(config: &Configuration) -> Result<()> {
     match &config.file_downloads {
-        Some(operations) => {
-            // I don't really like this at the moment, but the super-nested results of this join_all
-            // are giving me a hard time at the moment
-            let errors = join_all(operations.iter().map(|op| execute_download_operation(op)))
-                .await
-                .into_iter()
-                .filter(Result::is_err)
-                .nth(1);
-
-            if let Some(res) = errors {
-                res
-            } else {
-                Ok(vec![])
-            }
-        }
-        None => Ok(vec![]),
+        Some(operations) => join_all(operations.iter().map(|op| execute_download_operation(op)))
+            .await
+            .into_iter()
+            .collect::<Result<Vec<()>>>()
+            .map(|_| ()),
+        None => Ok(()),
     }
 }
 
-async fn execute_download_operation(operation: &FileDownloadOperation) -> Result<Vec<()>> {
+async fn execute_download_operation(operation: &FileDownloadOperation) -> Result<()> {
     let target = operation
         .download_target_base()
         .ok_or_else(|| Error::from("Unable to resolve target directory"))?;
@@ -39,7 +30,7 @@ async fn execute_download_operation(operation: &FileDownloadOperation) -> Result
     }
     debug!("{:?}", target);
     let client: Client = Client::new();
-    join_all(
+    let results: Result<()> = join_all(
         operation
             .files
             .iter()
@@ -47,8 +38,49 @@ async fn execute_download_operation(operation: &FileDownloadOperation) -> Result
     )
     .await
     .into_iter()
-    .collect()
-    // TODO: If there is an after_complete section, run what's in there
+    .collect::<Result<Vec<()>>>()
+    .map(|_| ());
+
+    if results.is_ok() {
+        // TODO: Since commands will be run from multiple modules, it may be prudent to centralize command running
+        match &operation.after_complete {
+            Some(after) => {
+                let mut base = after.command.clone();
+                if let Some(args) = &after.args {
+                    for arg in args.iter() {
+                        base.push_str(&format!(" {}", arg));
+                    }
+                }
+                match Command::new("sh").arg("-c").arg(&base).spawn()?.wait() {
+                    Ok(status) => {
+                        if status.success() {
+                            Ok(())
+                        } else {
+                            let status_code = {
+                                match status.code() {
+                                    Some(code) => code.to_string(),
+                                    None => "unknown".to_string(),
+                                }
+                            };
+
+                            Err(Error::from(
+                                    format!(
+                                        "Received  {} status code when running after-download command: '{}'", 
+                                        &status_code,
+                                        &base
+                                    )
+                                )
+                            )
+                        }
+                    }
+                    Err(e) => Err(Error::from(e)),
+                }
+            }
+            None => results,
+        }
+    } else {
+        results
+    }
 }
 
 async fn download_target(
