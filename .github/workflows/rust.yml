@@ -1,22 +1,74 @@
 name: Rust
 
-on: [push]
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+env:
+  RUST_BACKTRACE: 1
 
 jobs:
+  style:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt
+          profile: minimal
+          override: true
+
+      - name: Cargo Fmt Check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+          profile: minimal
+          override: true
+
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
-      - name: Clippy
-        uses: icepuma/rust-action@1.39.0
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
         with:
-          args: cargo clippy --verbose
+          toolchain: stable
+          profile: minimal
+          override: true
+
       - name: Build
-        uses: icepuma/rust-action@1.39.0
+        uses: actions-rs/cargo@v1
         with:
-          args: cargo build --verbose
-      - name: Run tests
-        uses: icepuma/rust-action@1.39.0
+          command: build
+
+      - name: Test
+        uses: actions-rs/cargo@v1
         with:
-          args: cargo test --verbose
+          command: test
