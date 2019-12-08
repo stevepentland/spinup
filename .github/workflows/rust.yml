@@ -15,7 +15,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -23,31 +22,28 @@ jobs:
           components: rustfmt
           profile: minimal
           override: true
-
       - name: Cargo Fmt Check
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
-  clippy:
+  clippy_check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           components: clippy
-          profile: minimal
           override: true
-
-      - name: Clippy
-        uses: actions-rs/cargo@v1
+      - name: Run Clippy
+        uses: actions-rs/clippy-check@v1
         with:
-          command: clippy
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
 
   build:
     runs-on: ubuntu-latest
@@ -55,19 +51,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
           override: true
-
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
-
       - name: Test
         uses: actions-rs/cargo@v1
         with:
