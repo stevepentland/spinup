@@ -36,11 +36,9 @@ async fn run_app(matches: clap::ArgMatches<'_>) -> Result<()> {
     let details = extract_distro_details().unwrap();
     let config = read_in_config(matches.value_of("CONFIG").unwrap())?;
 
-    #[cfg(debug_assertions)]
-    {
-        if matches.is_present("generate") {
-            write_other_config_files(&config);
-        }
+    if cfg!(debug_assertions) && matches.is_present("generate") {
+        write_other_config_files(&config);
+        return Ok(());
     }
 
     if !matches.is_present("no-packages") {
@@ -105,8 +103,7 @@ async fn main() {
                 .index(1),
         );
 
-    #[cfg(debug_assertions)]
-    {
+    if cfg!(debug_assertions) {
         // TODO: Keep only for development
         app = app.arg(
             Arg::with_name("generate")

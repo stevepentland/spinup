@@ -22,29 +22,53 @@ packages = [
     'libu2f-host',
 ]
 
+[[distro_packages]]
+target_os = 'ubuntu'
+packages = [
+    'gnupg2',
+    'pcscd',
+    'scdaemon',
+    'pcsc-tools',
+]
+
 [[file_downloads]]
-base_dir = '/home/steve/temp'
+base_dir = '~/temp'
 
 [[file_downloads.files]]
 source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
 target = 'Ubuntu Mono Nerd Font Complete.ttf'
 
 [[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
-target = 'Ubuntu Mono Nerd Font Complete2.ttf'
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete%20Mono.ttf'
+target = 'Ubuntu Mono Nerd Font Complete Mono.ttf'
 
 [[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
-target = 'Ubuntu Mono Nerd Font Complete3.ttf'
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Inconsolata/complete/Inconsolata%20Regular%20Nerd%20Font%20Complete.ttf'
+target = 'Inconsolata Regular Nerd Font Complete.ttf'
 
-# [file_downloads.after_complete]
-# command = 'rm'
-# args = [
-#     '-rf',
-#     '~/temp',
-# ]
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Inconsolata/complete/Inconsolata%20Regular%20Nerd%20Font%20Complete%20Mono.ttf'
+target = 'Inconsolata Regular Nerd Font Complete Mono.ttf'
 
-# [[file_downloads]]
-# [[file_downloads.files]]
-# source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
-# target = 'Ubuntu Mono Nerd Font Complete.ttf'
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete.ttf'
+target = 'Sauce Code Pro Nerd Font Complete.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete%20Mono.ttf'
+target = 'Sauce Code Pro Nerd Font Complete Mono.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/complete/Fura%20Code%20Regular%20Nerd%20Font%20Complete.ttf'
+target = 'Fura Code Regular Nerd Font Complete.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/complete/Fura%20Code%20Regular%20Nerd%20Font%20Complete%20Mono.ttf'
+target = 'Fura Code Regular Nerd Font Complete Mono.ttf'
+
+[file_downloads.after_complete]
+command = 'rm'
+args = [
+    '-rf',
+    '~/temp',
+]

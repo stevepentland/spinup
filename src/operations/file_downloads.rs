@@ -31,12 +31,11 @@ pub async fn execute_download_operations(config: &Configuration) -> Result<Vec<(
 }
 
 async fn execute_download_operation(operation: &FileDownloadOperation) -> Result<Vec<()>> {
-    let target = operation.download_target_base().unwrap();
-    if !target.exists() && fs::create_dir_all(&target).is_err() {
-        return Err(Error::from(format!(
-            "Unable to create target '{}' and it did not exist",
-            target.to_string_lossy()
-        )));
+    let target = operation
+        .download_target_base()
+        .ok_or_else(|| Error::from("Unable to resolve target directory"))?;
+    if !target.exists() {
+        fs::create_dir_all(&target)?;
     }
     debug!("{:?}", target);
     let client: Client = Client::new();
@@ -49,6 +48,7 @@ async fn execute_download_operation(operation: &FileDownloadOperation) -> Result
     .await
     .into_iter()
     .collect()
+    // TODO: If there is an after_complete section, run what's in there
 }
 
 async fn download_target(

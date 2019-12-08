@@ -27,7 +27,6 @@ use crate::system::{PackageManager, SystemDetails, TargetOperatingSystem};
 ///
 /// install_packages(&config, &details);
 /// ```
-///
 pub fn install_packages(config: &Configuration, details: &SystemDetails) -> Result<()> {
     if let Some(packages) = extract_packages(config, details) {
         log_package_info(&packages);

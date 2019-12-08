@@ -99,7 +99,17 @@ impl FileDownloadOperation {
             .as_ref()
             .map(PathBuf::from)
             .or_else(|| env::current_dir().ok().or_else(dirs::home_dir))
+            .and_then(fixup_path)
     }
+}
+
+fn fixup_path(mut path: PathBuf) -> Option<PathBuf> {
+    if path.starts_with("~") {
+        if let Some(home) = dirs::home_dir() {
+            path = path.strip_prefix("~").ok().map(|p| home.join(p))?;
+        }
+    }
+    Some(path)
 }
 
 #[cfg(test)]
