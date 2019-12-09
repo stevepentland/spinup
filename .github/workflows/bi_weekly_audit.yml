@@ -16,7 +16,7 @@ jobs:
           components: rustfmt
           profile: minimal
           override: true
-      - name: Audit
-      - uses: actions-rs/audit-check@v1
+      - name: Security Audit
+        uses: actions-rs/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
