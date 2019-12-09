@@ -3,12 +3,12 @@ name = 'spinup'
 version = '0.1.0'
 authors = ['Steve Pentland <stevepentland@gmail.com>']
 edition = '2018'
+license = 'MIT'
 
 [dependencies]
 clap = '2.33'
 dirs = '2.0'
 flexi_logger = '0.14'
-lazy_static = '1.4'
 libc = '0.2'
 log = '0.4'
 serde_yaml = '0.8'
@@ -22,10 +22,6 @@ futures = '0.3'
 [dependencies.serde]
 version = '1.0'
 features = ['derive']
-
-# [dependencies.async-std]
-# version = "1.2"
-# features = ['attributes']
 
 [dev-dependencies]
 paste = '0.1'
