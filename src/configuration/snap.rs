@@ -57,7 +57,7 @@ pub struct Snaps {
 }
 
 impl Snaps {
-    pub fn standard_install_string(&self) -> Option<String> {
+    pub fn _standard_install_string(&self) -> Option<String> {
         let base = self
             .packages
             .iter()
@@ -68,14 +68,14 @@ impl Snaps {
 
         let names = base.trim();
 
-        if names.len() > 0 {
+        if !names.is_empty() {
             Some(String::from(names))
         } else {
             None
         }
     }
 
-    pub fn individual_snap_install_strings(&self) -> Vec<String> {
+    pub fn _individual_snap_install_strings(&self) -> Vec<String> {
         self.packages
             .iter()
             .filter(|pkg| pkg.classic || pkg.channel != SnapChannel::Stable)
@@ -143,7 +143,7 @@ mod tests {
     #[test]
     fn test_build_standard_snap_names() {
         let expected = String::from("mailspring postman");
-        let actual = snaps_data().standard_install_string();
+        let actual = snaps_data()._standard_install_string();
         assert!(actual.is_some());
         assert_eq!(expected, actual.unwrap());
     }
@@ -159,7 +159,7 @@ mod tests {
             String::from("--edge darktable"),
             String::from("--classic --edge sublime-text"),
         ];
-        let actual = snaps_data().individual_snap_install_strings();
+        let actual = snaps_data()._individual_snap_install_strings();
         assert_eq!(actual, expected);
     }
 
@@ -172,7 +172,7 @@ mod tests {
                 channel: SnapChannel::Edge,
             }],
         };
-        let actual = subject.standard_install_string();
+        let actual = subject._standard_install_string();
         assert_eq!(actual, None);
     }
 
@@ -185,7 +185,7 @@ mod tests {
                 channel: SnapChannel::Stable,
             }],
         };
-        let actual = subject.individual_snap_install_strings();
+        let actual = subject._individual_snap_install_strings();
         assert_eq!(actual.len(), 0);
     }
 }

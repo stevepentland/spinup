@@ -22,17 +22,17 @@ impl RunnableOperation for &PackageList {
         true
     }
 
-    fn command_name(&self, system_details: &SystemDetails) -> Result<String> {
+    fn command_name(&self, system_details: SystemDetails) -> Result<String> {
         system_details
             .package_manager()
             .map(|pm| pm.name)
-            .ok_or(Error::from("This system has no package manager"))
+            .ok_or_else(|| Error::from("This system has no package manager"))
     }
 
-    fn args(&self, system_details: &SystemDetails) -> Result<Vec<String>> {
+    fn args(&self, system_details: SystemDetails) -> Result<Vec<String>> {
         let package_manager = system_details
             .package_manager()
-            .ok_or(Error::from("This system has no package manager"))?;
+            .ok_or_else(|| Error::from("This system has no package manager"))?;
 
         let mut install_args = vec![];
         if let Some(install_command) = package_manager.install_subcommand {

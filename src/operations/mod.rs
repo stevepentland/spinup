@@ -10,9 +10,9 @@ pub mod packages;
 pub mod snap;
 
 pub trait RunnableOperation {
-    fn command_name(&self, system_details: &SystemDetails) -> Result<String>;
+    fn command_name(&self, system_details: SystemDetails) -> Result<String>;
 
-    fn args(&self, system_details: &SystemDetails) -> Result<Vec<String>>;
+    fn args(&self, system_details: SystemDetails) -> Result<Vec<String>>;
 
     fn needs_root(&self) -> bool;
 }
@@ -34,7 +34,7 @@ fn get_root() -> Result<()> {
     }
 }
 
-pub fn run_command(runnable: impl RunnableOperation, system_details: &SystemDetails) -> Result<()> {
+pub fn run_command(runnable: impl RunnableOperation, system_details: SystemDetails) -> Result<()> {
     if runnable.needs_root() {
         get_root()?;
     }

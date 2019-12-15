@@ -13,7 +13,7 @@ use crate::error::Result;
 ///
 pub fn install_packages(config: &Configuration) -> Result<()> {
     if let Some(packages) = &config.package_list {
-        run_command(packages, &config.system_details)
+        run_command(packages, config.system_details)
     } else {
         info!("No packages were detected in the configuration file");
         Ok(())
