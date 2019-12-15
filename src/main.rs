@@ -6,17 +6,15 @@ extern crate log;
 use clap::{App, Arg};
 use flexi_logger::Logger;
 
-use config::{read_in_config, Configuration};
+use configuration::{read_in_config, Configuration};
 use error::{Error, Result};
 use operations::file_downloads::execute_download_operations;
 use operations::packages::install_packages;
 use operations::process_is_root;
-use system::extract_distro_details;
 
-mod config;
+mod configuration;
 mod error;
 mod operations;
-mod system;
 
 const DEFAULT_LOG_LEVEL: &str = "warn";
 
@@ -30,8 +28,9 @@ async fn run_app(matches: clap::ArgMatches<'_>) -> Result<()> {
         return Err(Error::from("spinup should not be run as root"));
     }
 
-    let details = extract_distro_details().unwrap();
     let config = read_in_config(matches.value_of("CONFIG").unwrap())?;
+
+    println!("{:#?}", config);
 
     if cfg!(debug_assertions) && matches.is_present("generate") {
         write_other_config_files(&config);
@@ -40,7 +39,7 @@ async fn run_app(matches: clap::ArgMatches<'_>) -> Result<()> {
 
     if !matches.is_present("no-packages") {
         debug!("Installing packages");
-        install_packages(&config, &details)?;
+        install_packages(&config)?;
     }
 
     if !matches.is_present("no-files") {

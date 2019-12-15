@@ -3,41 +3,29 @@ use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-use dirs;
 use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct DistroPackages {
-    pub target_os: String,
-    pub packages: Option<Vec<String>>,
-}
+mod command;
+mod files;
+mod packages;
+mod snap;
+mod system;
+
+pub use command::*;
+pub use files::*;
+pub use packages::*;
+pub use snap::*;
+pub use system::*;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Configuration {
-    pub packages: Option<Vec<String>>,
-    pub distro_packages: Option<Vec<DistroPackages>>,
+    pub package_list: Option<PackageList>,
     pub file_downloads: Option<Vec<FileDownloadOperation>>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct CustomCommand {
-    pub command: String,
-    pub args: Option<Vec<String>>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct FileDownloadDefinition {
-    pub source: String,
-    pub target: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct FileDownloadOperation {
-    pub base_dir: Option<String>,
-    pub after_complete: Option<CustomCommand>,
-    pub files: Vec<FileDownloadDefinition>,
+    pub snaps: Option<Snaps>,
+    #[serde(skip, default = "SystemDetails::default")]
+    pub system_details: SystemDetails,
 }
 
 pub fn read_in_config(config_path: &str) -> Result<Configuration> {
@@ -114,6 +102,8 @@ fn fixup_path(mut path: PathBuf) -> Option<PathBuf> {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use super::*;
 
     #[test]

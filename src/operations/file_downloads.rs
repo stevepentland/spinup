@@ -7,7 +7,7 @@ use std::process::Command;
 use futures::future::join_all;
 use reqwest::Client;
 
-use crate::config::{Configuration, FileDownloadDefinition, FileDownloadOperation};
+use crate::configuration::{Configuration, FileDownloadDefinition, FileDownloadOperation};
 use crate::error::{Error, Result};
 
 pub async fn execute_download_operations(config: &Configuration) -> Result<()> {

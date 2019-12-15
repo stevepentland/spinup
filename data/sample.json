@@ -1,38 +1,40 @@
 {
-  "packages": [
-    "zsh",
-    "git",
-    "exa",
-    "ripgrep",
-    "restic",
-    "neovim",
-    "snapd",
-    "xclip",
-    "curl",
-    "tmux",
-    "tlp",
-    "flameshot"
-  ],
-  "distro_packages": [
-    {
-      "target_os": "arch",
-      "packages": [
-        "bat",
-        "pcsclite",
-        "ccid",
-        "libu2f-host"
-      ]
-    },
-    {
-      "target_os": "ubuntu",
-      "packages": [
-        "gnupg2",
-        "pcscd",
-        "scdaemon",
-        "pcsc-tools"
-      ]
-    }
-  ],
+  "package_list": {
+    "base_packages": [
+      "zsh",
+      "git",
+      "exa",
+      "ripgrep",
+      "restic",
+      "neovim",
+      "snapd",
+      "xclip",
+      "curl",
+      "tmux",
+      "tlp",
+      "flameshot"
+    ],
+    "distro_packages": [
+      {
+        "target_os": "arch",
+        "packages": [
+          "bat",
+          "pcsclite",
+          "ccid",
+          "libu2f-host"
+        ]
+      },
+      {
+        "target_os": "ubuntu",
+        "packages": [
+          "gnupg2",
+          "pcscd",
+          "scdaemon",
+          "pcsc-tools"
+        ]
+      }
+    ]
+  },
   "file_downloads": [
     {
       "base_dir": "~/temp",
@@ -78,5 +80,19 @@
         }
       ]
     }
-  ]
+  ],
+  "snaps": {
+    "packages": [
+      {
+        "name": "some-package",
+        "classic": false,
+        "channel": "stable"
+      },
+      {
+        "name": "another-package",
+        "classic": false,
+        "channel": "stable"
+      }
+    ]
+  }
 }

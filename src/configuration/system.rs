@@ -1,7 +1,5 @@
 use sys_info;
 
-use crate::error::Result;
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct PackageManager {
     pub name: String,
@@ -46,7 +44,7 @@ pub enum TargetOperatingSystem {
     Unknown,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct SystemDetails {
     target_os: TargetOperatingSystem,
 }
@@ -56,11 +54,11 @@ impl SystemDetails {
         SystemDetails { target_os }
     }
 
-    pub fn package_manager(&self) -> Option<PackageManager> {
+    pub fn package_manager(self) -> Option<PackageManager> {
         self.target_os.into()
     }
 
-    pub fn current_os(&self) -> TargetOperatingSystem {
+    pub fn current_os(self) -> TargetOperatingSystem {
         self.target_os
     }
 }
@@ -96,9 +94,13 @@ impl From<&str> for TargetOperatingSystem {
     }
 }
 
-pub fn extract_distro_details() -> Result<SystemDetails> {
-    let rel = sys_info::linux_os_release()?;
-    Ok(SystemDetails::from(rel))
+impl Default for SystemDetails {
+    fn default() -> Self {
+        match sys_info::linux_os_release() {
+            Ok(release) => SystemDetails::from(release),
+            Err(_) => SystemDetails::new(TargetOperatingSystem::Unknown),
+        }
+    }
 }
 
 #[cfg(test)]
