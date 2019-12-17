@@ -51,10 +51,18 @@ file_downloads:
       - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/complete/Fura%20Code%20Regular%20Nerd%20Font%20Complete%20Mono.ttf"
         target: Fura Code Regular Nerd Font Complete Mono.ttf
 snaps:
-  packages:
-    - name: some-package
-      classic: false
+  standard_snaps:
+    names:
+      - postman
+      - mailspring
+      - audacity
+      - discord
+      - spotify
+      - firefox
+  alternate_snaps:
+    - name: code
+      classic: true
       channel: stable
-    - name: another-package
-      classic: false
+    - name: shotcut
+      classic: true
       channel: stable

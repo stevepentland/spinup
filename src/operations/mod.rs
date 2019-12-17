@@ -5,14 +5,18 @@ use std::process::{Command, Stdio};
 use crate::configuration::SystemDetails;
 use crate::error::{Error, Result};
 
-pub mod file_downloads;
-pub mod packages;
-pub mod snap;
+mod file_downloads;
+mod packages;
+mod snap;
+
+pub use file_downloads::execute_download_operations;
+pub use packages::install_packages;
+pub use snap::install_snap_packages;
 
 pub trait RunnableOperation {
-    fn command_name(&self, system_details: SystemDetails) -> Result<String>;
+    fn command_name(&self, system_details: SystemDetails) -> Option<String>;
 
-    fn args(&self, system_details: SystemDetails) -> Result<Vec<String>>;
+    fn args(&self, system_details: SystemDetails) -> Option<Vec<String>>;
 
     fn needs_root(&self) -> bool;
 }
@@ -34,25 +38,26 @@ fn get_root() -> Result<()> {
     }
 }
 
-pub fn run_command(runnable: impl RunnableOperation, system_details: SystemDetails) -> Result<()> {
-    if runnable.needs_root() {
-        get_root()?;
-    }
-
+fn run_command(runnable: impl RunnableOperation, system_details: SystemDetails) -> Result<()> {
     let mut command = Command::new("sh");
     command.arg("-c");
 
     if runnable.needs_root() {
+        get_root()?;
         command.arg("sudo");
     }
 
-    let command_name = runnable.command_name(system_details)?;
+    let command_name = runnable
+        .command_name(system_details)
+        .ok_or_else(|| Error::from("Was expecting a command, but got None instead"))?;
+
+    let command_args = runnable.args(system_details).unwrap_or_default();
 
     let status = command
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .arg(&command_name)
-        .args(runnable.args(system_details)?)
+        .args(command_args)
         .spawn()?
         .wait()?;
 

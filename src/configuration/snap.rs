@@ -2,6 +2,10 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+use crate::operations::RunnableOperation;
+
+use super::SystemDetails;
+
 #[derive(Debug, Deserialize, Serialize, Copy, Clone, PartialEq)]
 #[serde(rename_all(deserialize = "lowercase", serialize = "lowercase"))]
 pub enum SnapChannel {
@@ -14,7 +18,7 @@ pub enum SnapChannel {
 impl fmt::Display for SnapChannel {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let text = match self {
-            SnapChannel::Stable => "",
+            SnapChannel::Stable => "--stable",
             SnapChannel::Beta => "--beta",
             SnapChannel::Candidate => "--candidate",
             SnapChannel::Edge => "--edge",
@@ -39,6 +43,11 @@ pub struct SnapPackage {
     pub channel: SnapChannel,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct StandardSnaps {
+    pub names: Vec<String>,
+}
+
 impl fmt::Display for SnapPackage {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let base = format!("{} {}", self.channel, self.name);
@@ -51,141 +60,57 @@ impl fmt::Display for SnapPackage {
     }
 }
 
+impl RunnableOperation for &SnapPackage {
+    fn command_name(&self, _system_details: SystemDetails) -> Option<String> {
+        Some(String::from("snap"))
+    }
+
+    fn args(&self, _system_details: SystemDetails) -> Option<Vec<String>> {
+        let mut args = vec![String::from("install"), self.name.clone(), format!("{}", self.channel)];
+
+        if self.classic {
+            args.push(String::from("--classic"));
+        }
+
+        Some(args)
+    }
+
+    fn needs_root(&self) -> bool {
+        true
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Snaps {
-    pub packages: Vec<SnapPackage>,
+    /// These snaps can be installed from the stable channel and
+    /// do not require `--classic` confinement
+    pub standard_snaps: StandardSnaps,
+
+    /// These snaps need to be installed from other channels and/or
+    /// need `--classic` confinement
+    pub alternate_snaps: Option<Vec<SnapPackage>>,
 }
 
-impl Snaps {
-    pub fn _standard_install_string(&self) -> Option<String> {
-        let base = self
-            .packages
-            .iter()
-            .filter(|pkg| !pkg.classic && pkg.channel == SnapChannel::Stable)
-            .map(|pkg| format!("{}", pkg))
-            .collect::<Vec<String>>()
-            .join(" ");
-
-        let names = base.trim();
-
-        if !names.is_empty() {
-            Some(String::from(names))
-        } else {
+impl RunnableOperation for &StandardSnaps {
+    fn command_name(&self, _system_details: SystemDetails) -> Option<String> {
+        if self.names.is_empty() {
             None
+        } else {
+            Some(String::from("snap"))
         }
     }
 
-    pub fn _individual_snap_install_strings(&self) -> Vec<String> {
-        self.packages
-            .iter()
-            .filter(|pkg| pkg.classic || pkg.channel != SnapChannel::Stable)
-            .map(|pkg| format!("{}", pkg))
-            .collect()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn snaps_data() -> Snaps {
-        Snaps {
-            packages: vec![
-                SnapPackage {
-                    name: String::from("code-insiders"),
-                    classic: true,
-                    channel: SnapChannel::Stable,
-                },
-                SnapPackage {
-                    name: String::from("mailspring"),
-                    classic: false,
-                    channel: SnapChannel::Stable,
-                },
-                SnapPackage {
-                    name: String::from("postman"),
-                    classic: false,
-                    channel: SnapChannel::Stable,
-                },
-                SnapPackage {
-                    name: String::from("powershell"),
-                    classic: true,
-                    channel: SnapChannel::Beta,
-                },
-                SnapPackage {
-                    name: String::from("wormhole"),
-                    classic: false,
-                    channel: SnapChannel::Beta,
-                },
-                SnapPackage {
-                    name: String::from("makemkv"),
-                    classic: false,
-                    channel: SnapChannel::Candidate,
-                },
-                SnapPackage {
-                    name: String::from("shotcut"),
-                    classic: true,
-                    channel: SnapChannel::Candidate,
-                },
-                SnapPackage {
-                    name: String::from("darktable"),
-                    classic: false,
-                    channel: SnapChannel::Edge,
-                },
-                SnapPackage {
-                    name: String::from("sublime-text"),
-                    classic: true,
-                    channel: SnapChannel::Edge,
-                },
-            ],
+    fn args(&self, _system_details: SystemDetails) -> Option<Vec<String>> {
+        if self.names.is_empty() {
+            None
+        } else {
+            let mut args = vec![String::from("install")];
+            args.extend(self.names.clone().into_iter());
+            Some(args)
         }
     }
 
-    #[test]
-    fn test_build_standard_snap_names() {
-        let expected = String::from("mailspring postman");
-        let actual = snaps_data()._standard_install_string();
-        assert!(actual.is_some());
-        assert_eq!(expected, actual.unwrap());
-    }
-
-    #[test]
-    fn test_build_other_snap_install_strings() {
-        let expected = vec![
-            String::from("--classic code-insiders"),
-            String::from("--classic --beta powershell"),
-            String::from("--beta wormhole"),
-            String::from("--candidate makemkv"),
-            String::from("--classic --candidate shotcut"),
-            String::from("--edge darktable"),
-            String::from("--classic --edge sublime-text"),
-        ];
-        let actual = snaps_data()._individual_snap_install_strings();
-        assert_eq!(actual, expected);
-    }
-
-    #[test]
-    fn test_build_standard_no_snaps() {
-        let subject = Snaps {
-            packages: vec![SnapPackage {
-                name: String::from("darktable"),
-                classic: false,
-                channel: SnapChannel::Edge,
-            }],
-        };
-        let actual = subject._standard_install_string();
-        assert_eq!(actual, None);
-    }
-
-    #[test]
-    fn test_build_others_no_snaps() {
-        let subject = Snaps {
-            packages: vec![SnapPackage {
-                name: String::from("darktable"),
-                classic: false,
-                channel: SnapChannel::Stable,
-            }],
-        };
-        let actual = subject._individual_snap_install_strings();
-        assert_eq!(actual.len(), 0);
+    fn needs_root(&self) -> bool {
+        true
     }
 }

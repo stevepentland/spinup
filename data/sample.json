@@ -82,15 +82,25 @@
     }
   ],
   "snaps": {
-    "packages": [
+    "standard_snaps": {
+      "names": [
+        "postman",
+        "mailspring",
+        "audacity",
+        "discord",
+        "spotify",
+        "firefox"
+      ]
+    },
+    "alternate_snaps": [
       {
-        "name": "some-package",
-        "classic": false,
+        "name": "code",
+        "classic": true,
         "channel": "stable"
       },
       {
-        "name": "another-package",
-        "classic": false,
+        "name": "shotcut",
+        "classic": true,
         "channel": "stable"
       }
     ]

@@ -1,14 +1,20 @@
-use crate::configuration::{Configuration, SnapPackage};
+use crate::configuration::Configuration;
 use crate::error::Result;
 
-pub fn _install_snap_packages(config: &Configuration) -> Result<()> {
-    if let Some(snaps) = &config.snaps {
-        let (_standard, _classic): (Vec<&SnapPackage>, Vec<&SnapPackage>) =
-            snaps.packages.iter().partition(|snap| snap.classic);
-    }
-    Ok(())
-}
+use super::run_command;
 
-fn _process_standard_snaps(_snaps: Vec<&SnapPackage>) -> Result<()> {
-    Ok(())
+pub fn install_snap_packages(config: &Configuration) -> Result<()> {
+    match &config.snaps {
+        Some(snaps) => {
+            run_command(&snaps.standard_snaps, config.system_details)?;
+
+            if let Some(additional_snaps) = &snaps.alternate_snaps {
+                for snap in additional_snaps {
+                    run_command(snap, config.system_details)?;
+                }
+            }
+            Ok(())
+        }
+        None => Ok(()),
+    }
 }

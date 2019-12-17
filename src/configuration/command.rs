@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::error::Result;
 use crate::operations::RunnableOperation;
 
 use super::SystemDetails;
@@ -12,15 +11,12 @@ pub struct CustomCommand {
 }
 
 impl RunnableOperation for &CustomCommand {
-    fn command_name(&self, _system_details: SystemDetails) -> Result<String> {
-        Ok(self.command.clone())
+    fn command_name(&self, _system_details: SystemDetails) -> Option<String> {
+        Some(self.command.clone())
     }
 
-    fn args(&self, _system_details: SystemDetails) -> Result<Vec<String>> {
-        match &self.args {
-            Some(a) => Ok(a.clone()),
-            None => Ok(vec![]),
-        }
+    fn args(&self, _system_details: SystemDetails) -> Option<Vec<String>> {
+        self.args.clone()
     }
 
     fn needs_root(&self) -> bool {

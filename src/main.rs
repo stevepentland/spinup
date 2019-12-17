@@ -8,9 +8,9 @@ use flexi_logger::Logger;
 
 use configuration::{read_in_config, Configuration};
 use error::{Error, Result};
-use operations::file_downloads::execute_download_operations;
-use operations::packages::install_packages;
-use operations::process_is_root;
+use operations::{
+    execute_download_operations, install_packages, install_snap_packages, process_is_root,
+};
 
 mod configuration;
 mod error;
@@ -30,7 +30,9 @@ async fn run_app(matches: clap::ArgMatches<'_>) -> Result<()> {
 
     let config = read_in_config(matches.value_of("CONFIG").unwrap())?;
 
-    println!("{:#?}", config);
+    if matches.is_present("print-parsed") {
+        println!("{:#?}", config);
+    }
 
     if cfg!(debug_assertions) && matches.is_present("generate") {
         write_other_config_files(&config);
@@ -48,6 +50,11 @@ async fn run_app(matches: clap::ArgMatches<'_>) -> Result<()> {
         if let Err(e) = dls {
             return Err(e);
         }
+    }
+
+    if !matches.is_present("no-snaps") {
+        debug!("Installing snaps");
+        install_snap_packages(&config)?;
     }
 
     Ok(())
@@ -91,6 +98,22 @@ async fn main() {
                 .help("Don't download files")
                 .multiple(false)
                 .takes_value(false),
+        )
+        .arg(
+            Arg::with_name("no-snaps")
+                .short("S")
+                .long("no-snaps")
+                .help("Don't install snap packages")
+                .multiple(false)
+                .takes_value(false),
+        )
+        .arg(
+            Arg::with_name("print-parsed")
+                .long("print-parsed")
+                .help("Print the parsed config")
+                .multiple(false)
+                .takes_value(false)
+                .hidden(true),
         )
         .arg(
             Arg::with_name("CONFIG")

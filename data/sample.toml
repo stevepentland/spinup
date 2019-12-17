@@ -74,8 +74,20 @@ packages = [
     'pcsc-tools',
 ]
 
-[[snaps.packages]]
-name = 'some-package'
+[[snaps.alternate_snaps]]
+name = 'code'
+classic = true
 
-[[snaps.packages]]
-name = 'another-package'
+[[snaps.alternate_snaps]]
+name = 'shotcut'
+classic = true
+
+[snaps.standard_snaps]
+names = [
+    'postman',
+    'mailspring',
+    'audacity',
+    'discord',
+    'spotify',
+    'firefox',
+]
