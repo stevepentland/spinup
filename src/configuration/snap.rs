@@ -66,7 +66,11 @@ impl RunnableOperation for &SnapPackage {
     }
 
     fn args(&self, _system_details: SystemDetails) -> Option<Vec<String>> {
-        let mut args = vec![String::from("install"), self.name.clone(), format!("{}", self.channel)];
+        let mut args = vec![
+            String::from("install"),
+            self.name.clone(),
+            format!("{}", self.channel),
+        ];
 
         if self.classic {
             args.push(String::from("--classic"));
