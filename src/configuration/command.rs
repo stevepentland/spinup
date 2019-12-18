@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::error::{Error, Result};
 use crate::operations::RunnableOperation;
 
 use super::SystemDetails;
@@ -11,8 +12,11 @@ pub struct CustomCommand {
 }
 
 impl RunnableOperation for &CustomCommand {
-    fn command_name(&self, _system_details: SystemDetails) -> Option<String> {
-        Some(self.command.clone())
+    fn command_name(&self, _system_details: SystemDetails) -> Result<String> {
+        match self.command.len() {
+            0 => Err(Error::from("Cannot process a zero-length shell command")),
+            _ => Ok(self.command.clone()),
+        }
     }
 
     fn args(&self, _system_details: SystemDetails) -> Option<Vec<String>> {
