@@ -63,7 +63,7 @@ pub struct SnapPackage {
     #[serde(default)]
     pub classic: bool,
 
-    /// The channel from which to install this snap, defaults to [`SnapChannel::Stable`](enum.SnapChannel.html)
+    /// The channel from which to install this snap, defaults to [`SnapChannel::Stable`](enum.SnapChannel.html#variant.Stable)
     #[serde(default)]
     pub channel: SnapChannel,
 }
@@ -76,7 +76,7 @@ pub struct StandardSnaps {
     pub names: Vec<String>,
 }
 
-impl RunnableOperation for &SnapPackage {
+impl RunnableOperation for SnapPackage {
     fn command_name(&self, _system_details: SystemDetails) -> Result<String> {
         match self.name.len() {
             0 => Err(Error::from("Cannot install a snap with no name")),
@@ -115,7 +115,7 @@ pub struct Snaps {
     pub alternate_snaps: Option<Vec<SnapPackage>>,
 }
 
-impl RunnableOperation for &StandardSnaps {
+impl RunnableOperation for StandardSnaps {
     fn command_name(&self, _system_details: SystemDetails) -> Result<String> {
         if self.names.is_empty() {
             Err(Error::from("Snap list was present but no names were given"))
@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_get_expected_executable_from_standard_snaps() {
-        let standard_snaps = &StandardSnaps {
+        let standard_snaps = StandardSnaps {
             names: vec![String::from("dummy")],
         };
 
@@ -167,7 +167,7 @@ mod tests {
 
     #[test]
     fn test_get_expected_arguments_from_standard_snaps() {
-        let standard_snaps = &StandardSnaps {
+        let standard_snaps = StandardSnaps {
             names: vec![String::from("spotify"), String::from("code")],
         };
         let actual_opt = standard_snaps.args(SystemDetails::new(TargetOperatingSystem::Arch));
@@ -183,14 +183,14 @@ mod tests {
 
     #[test]
     fn ensure_no_names_gives_none_args() {
-        let standard_snaps = &StandardSnaps { names: vec![] };
+        let standard_snaps = StandardSnaps { names: vec![] };
         let actual_opt = standard_snaps.args(SystemDetails::new(TargetOperatingSystem::Arch));
         assert!(actual_opt.is_none());
     }
 
     #[test]
     fn ensure_empty_snap_list_is_command_err() {
-        let standard_snaps = &StandardSnaps { names: Vec::new() };
+        let standard_snaps = StandardSnaps { names: Vec::new() };
         let actual_res =
             standard_snaps.command_name(SystemDetails::new(TargetOperatingSystem::Arch));
         assert!(actual_res.is_err());
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn ensure_standard_snaps_needs_root() {
-        let standard_snaps = &StandardSnaps {
+        let standard_snaps = StandardSnaps {
             names: vec![String::from("dummy")],
         };
         assert!(standard_snaps.needs_root());
@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn test_package_command() {
-        let package = &SnapPackage {
+        let package = SnapPackage {
             name: String::from("spotify"),
             classic: true,
             channel: SnapChannel::default(),
@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_package_stable_classic_args() {
-        let package = &SnapPackage {
+        let package = SnapPackage {
             name: String::from("spotify"),
             classic: true,
             channel: SnapChannel::default(),
@@ -240,7 +240,7 @@ mod tests {
 
     #[test]
     fn ensure_nameless_snap_is_cmd_err() {
-        let package = &SnapPackage {
+        let package = SnapPackage {
             name: String::new(),
             classic: true,
             channel: SnapChannel::default(),
@@ -251,7 +251,7 @@ mod tests {
 
     #[test]
     fn test_package_stable_no_classic_args() {
-        let package = &SnapPackage {
+        let package = SnapPackage {
             name: String::from("spotify"),
             classic: false,
             channel: SnapChannel::default(),
@@ -271,7 +271,7 @@ mod tests {
 
     #[test]
     fn test_package_beta_args() {
-        let package = &SnapPackage {
+        let package = SnapPackage {
             name: String::from("spotify"),
             classic: false,
             channel: SnapChannel::Beta,
@@ -291,7 +291,7 @@ mod tests {
 
     #[test]
     fn test_package_candidate_args() {
-        let package = &SnapPackage {
+        let package = SnapPackage {
             name: String::from("spotify"),
             classic: false,
             channel: SnapChannel::Candidate,
@@ -311,7 +311,7 @@ mod tests {
 
     #[test]
     fn test_package_edge_args() {
-        let package = &SnapPackage {
+        let package = SnapPackage {
             name: String::from("spotify"),
             classic: false,
             channel: SnapChannel::Edge,
@@ -331,7 +331,7 @@ mod tests {
 
     #[test]
     fn test_package_needs_root() {
-        let package = &SnapPackage {
+        let package = SnapPackage {
             name: String::from("spotify"),
             classic: false,
             channel: SnapChannel::Edge,

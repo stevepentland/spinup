@@ -1,3 +1,6 @@
+//! The file_downloads module handles downloading various files
+//! and running other related commands.
+
 use std::fs;
 use std::fs::File;
 use std::io::Write;

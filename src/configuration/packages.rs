@@ -68,7 +68,7 @@ impl PackageList {
     }
 }
 
-impl RunnableOperation for &PackageList {
+impl RunnableOperation for PackageList {
     fn needs_root(&self) -> bool {
         true
     }
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn test_package_install_needs_root() {
-        let package_list = &PackageList {
+        let package_list = PackageList {
             base_packages: None,
             distro_packages: None,
         };
@@ -140,7 +140,7 @@ mod tests {
 
     #[test]
     fn test_unknown_system_is_err() {
-        let package_list = &PackageList {
+        let package_list = PackageList {
             base_packages: Some(vec![String::from("git")]),
             distro_packages: None,
         };
@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn test_command_name_err_no_packages() {
-        let package_list = &PackageList {
+        let package_list = PackageList {
             base_packages: None,
             distro_packages: None,
         };
@@ -162,7 +162,7 @@ mod tests {
 
     #[test]
     fn test_command_name_err_distro_package_none() {
-        let package_list = &PackageList {
+        let package_list = PackageList {
             base_packages: None,
             distro_packages: Some(vec![DistroPackages {
                 target_os: String::from("manjaro"),
@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn test_command_name_err_distro_package_empty() {
-        let package_list = &PackageList {
+        let package_list = PackageList {
             base_packages: None,
             distro_packages: Some(vec![DistroPackages {
                 target_os: String::from("ubuntu"),
@@ -189,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_command_name_base_packages() {
-        let package_list = &PackageList {
+        let package_list = PackageList {
             base_packages: Some(vec![String::from("git")]),
             distro_packages: None,
         };
@@ -202,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_command_name_distro_packages() {
-        let package_list = &PackageList {
+        let package_list = PackageList {
             base_packages: None,
             distro_packages: Some(vec![DistroPackages {
                 target_os: String::from("arch"),

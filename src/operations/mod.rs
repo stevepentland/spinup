@@ -1,3 +1,6 @@
+//! The operations module defines various operations that can be run
+//! and also provides the means to run them.
+
 use libc;
 
 use std::process::{Command, Stdio};
@@ -26,8 +29,8 @@ pub trait RunnableOperation {
     /// **Note**:
     ///
     /// It is important that this is only a single string of the actual command
+    /// be included in [`args`](trait.RunnableOperation.html#tymethod.args)
     /// to run, with no arguments. If there are additional sub-commands they should
-    /// be included in `args`
     fn command_name(&self, system_details: SystemDetails) -> Result<String>;
 
     /// Any additional arguments to be sent to the command that will be run.
@@ -67,7 +70,7 @@ fn get_root() -> Result<()> {
 ///
 /// - `runnable`: The `RunnableOperation` to execute
 /// - `system_details`: The current configuration's system details for which system we're running in
-fn run_command(runnable: impl RunnableOperation, system_details: SystemDetails) -> Result<()> {
+fn run_command(runnable: &impl RunnableOperation, system_details: SystemDetails) -> Result<()> {
     let mut command = Command::new("sh");
     command.arg("-c");
 
