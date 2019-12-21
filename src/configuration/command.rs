@@ -20,11 +20,19 @@ pub struct CustomCommand {
     /// Any arguments to pass to the command
     pub args: Option<Vec<String>>,
 
+    /// Whether this command needs root privileges to run
     #[serde(default)]
     pub needs_root: bool,
 }
 
 impl CustomCommand {
+    /// Create a new `CustomCommand`
+    ///
+    /// # Arguments:
+    ///
+    /// - `command`: The command to run
+    /// - `args`: Any arguments that should be passed to `command` when run
+    /// - `needs_root`: Whether this command should be run via `sudo`
     pub fn new(command: String, args: Option<Vec<String>>, needs_root: bool) -> Self {
         CustomCommand {
             command,

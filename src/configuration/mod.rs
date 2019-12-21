@@ -19,15 +19,38 @@ pub use packages::*;
 pub use snap::*;
 pub use system::*;
 
+/// Main configuration struct
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Configuration {
+    /// An optional list of [`PackageList`](struct.PackageList.html) items to install
     pub package_list: Option<PackageList>,
+
+    /// An optional list of [`FileDownloadOperation`](struct.FileDownloadOperation) specifying files
+    /// to download
     pub file_downloads: Option<Vec<FileDownloadOperation>>,
+
+    /// An optional list of [`Snaps`](struct.Snaps.html) to install
     pub snaps: Option<Snaps>,
+
+    /// The current system details when this configuration was created
     #[serde(skip, default = "SystemDetails::default")]
     pub system_details: SystemDetails,
 }
 
+/// Read in the configuration file specified by `config_path` and parse its contents
+/// into a `Configuration` instance.
+///
+/// # Arguments:
+/// - `config_path`: The path to the target configuration file
+///
+/// # Returns:
+/// A [`Configuration`](struct.Configuration.html) instance
+///
+/// # Errors:
+/// This function will return an error under the following conditions:
+/// - The specified path does not exist
+/// - The specified file cannot be read
+/// - The specified file cannot be parsed as toml, yaml, or json
 pub fn read_in_config(config_path: &str) -> Result<Configuration> {
     PathBuf::from(config_path).canonicalize().map(|target| {
         if !target.is_file() {
@@ -43,6 +66,7 @@ pub fn read_in_config(config_path: &str) -> Result<Configuration> {
     })?
 }
 
+/// Possible syntax options a config file could be
 #[derive(Debug, PartialEq)]
 enum FileSyntax {
     Toml,
