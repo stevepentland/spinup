@@ -19,11 +19,18 @@ pub struct CustomCommand {
 
     /// Any arguments to pass to the command
     pub args: Option<Vec<String>>,
+
+    #[serde(default)]
+    pub needs_root: bool,
 }
 
 impl CustomCommand {
-    pub fn new(command: String, args: Option<Vec<String>>) -> Self {
-        CustomCommand { command, args }
+    pub fn new(command: String, args: Option<Vec<String>>, needs_root: bool) -> Self {
+        CustomCommand {
+            command,
+            args,
+            needs_root,
+        }
     }
 }
 
@@ -31,8 +38,6 @@ impl RunnableOperation for CustomCommand {
     fn command_name(&self, _system_details: SystemDetails) -> Result<String> {
         if self.command.is_empty() {
             Err(Error::from("Cannot process a zero-length shell command"))
-        } else if self.needs_root() && self.args.is_none() {
-            Err(Error::from("Cannot run sudo with no additional args"))
         } else {
             Ok(self.command.clone())
         }
@@ -43,7 +48,7 @@ impl RunnableOperation for CustomCommand {
     }
 
     fn needs_root(&self) -> bool {
-        self.command == "sudo"
+        self.needs_root
     }
 }
 
@@ -55,7 +60,7 @@ mod tests {
 
     #[test]
     fn test_get_command_name() {
-        let command = CustomCommand::new(String::from("fc-cache"), None);
+        let command = CustomCommand::new(String::from("fc-cache"), None, false);
         let actual_res = command.command_name(SystemDetails::new(TargetOperatingSystem::Arch));
         assert!(actual_res.is_ok());
         let actual = actual_res.unwrap();
@@ -64,28 +69,27 @@ mod tests {
 
     #[test]
     fn test_empty_command_err() {
-        let command = CustomCommand::new(String::new(), None);
+        let command = CustomCommand::new(String::new(), None, false);
         let actual_res = command.command_name(SystemDetails::new(TargetOperatingSystem::Arch));
         assert!(actual_res.is_err());
     }
 
     #[test]
     fn test_no_root_without_sudo() {
-        let command = CustomCommand::new(String::from("git"), None);
+        let command = CustomCommand::new(String::from("git"), None, false);
         assert!(!command.needs_root());
     }
 
     #[test]
-    fn test_root_with_sudo() {
-        let command = CustomCommand::new(String::from("sudo"), None);
+    fn test_root() {
+        let command = CustomCommand::new(String::from("systemctl"), None, true);
         assert!(command.needs_root());
     }
 
     #[test]
-    fn test_sudo_with_no_args_is_err() {
-        let command = CustomCommand::new(String::from("sudo"), None);
-        let actual = command.command_name(SystemDetails::new(TargetOperatingSystem::Debian));
-        assert!(actual.is_err());
+    fn test_not_root() {
+        let command = CustomCommand::new(String::from("systemctl"), None, false);
+        assert!(!command.needs_root());
     }
 
     #[test]
@@ -96,6 +100,7 @@ mod tests {
                 String::from("/tmp/file.txt"),
                 String::from("/tmp/file.txt.bak"),
             ]),
+            false,
         );
         let actual_opt = command.args(SystemDetails::new(TargetOperatingSystem::Arch));
         assert!(actual_opt.is_some());
@@ -111,7 +116,7 @@ mod tests {
 
     #[test]
     fn test_get_none_args() {
-        let command = CustomCommand::new(String::from("git"), None);
+        let command = CustomCommand::new(String::from("git"), None, false);
         let actual = command.args(SystemDetails::new(TargetOperatingSystem::Mint));
         assert!(actual.is_none());
     }

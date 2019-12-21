@@ -249,4 +249,40 @@ packages:
         let actual = parse_file_contents(String::from("Somerandomjunk"), FileSyntax::Unknown);
         assert!(actual.is_err());
     }
+
+    #[test]
+    fn test_reading_in_good_toml_config() {
+        let actual = read_in_config("./data/sample.toml");
+        assert!(actual.is_ok());
+    }
+
+    #[test]
+    fn test_reading_in_good_json_config() {
+        let actual = read_in_config("./data/sample.json");
+        assert!(actual.is_ok());
+    }
+
+    #[test]
+    fn test_reading_in_good_yaml_config() {
+        let actual = read_in_config("./data/sample.yml");
+        assert!(actual.is_ok());
+    }
+
+    #[test]
+    fn test_reading_fail_on_dir() {
+        let actual = read_in_config("/tmp");
+        assert!(actual.is_err());
+    }
+
+    #[test]
+    fn test_guess_unknown_syntax() {
+        let actual = guess_file_syntax(Path::new("./data/noextension"));
+        assert_eq!(actual, FileSyntax::Unknown);
+    }
+
+    #[test]
+    fn test_guess_unknown_from_unknown_extension() {
+        let actual = guess_file_syntax(Path::new("./data/setup.sh"));
+        assert_eq!(actual, FileSyntax::Unknown);
+    }
 }
