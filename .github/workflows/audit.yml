@@ -5,12 +5,16 @@ on:
     paths:
       - "Cargo.toml"
       - "Cargo.lock"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
   push:
     branches:
       - master
     paths:
       - "Cargo.toml"
       - "Cargo.lock"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
 
 jobs:
   security_audit:

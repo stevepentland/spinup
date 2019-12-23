@@ -4,7 +4,7 @@ extern crate clap;
 extern crate log;
 
 use clap::{App, Arg};
-use spinup::run_app;
+use libspinup::run_app;
 
 #[cfg_attr(tarpaulin, skip)]
 #[tokio::main]
@@ -12,7 +12,7 @@ async fn main() {
     let mut app = App::new("Spinup")
         .version(crate_version!())
         .author("Steve Pentland")
-        .about("Helps you spin up your new environment!")
+        .about("Helps you spin up your new environment")
         .arg(
             Arg::with_name("verbose")
                 .short("v")
