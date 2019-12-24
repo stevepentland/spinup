@@ -1,18 +1,71 @@
 use sys_info;
 
+use crate::error::Result;
+use crate::operations::RunnableOperation;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct PackageManager {
     pub name: String,
     pub install_subcommand: Option<String>,
+    pub update_subcommand: Option<String>,
+    pub upgrade_subcommand: Option<String>,
     pub autoconfirm: Option<String>,
 }
 
+#[derive(Debug, Clone)]
+struct SystemRefreshOperation {
+    pub command_name: String,
+    pub target_subcommand: String,
+    pub autoconfirm: String,
+}
+
+impl RunnableOperation for SystemRefreshOperation {
+    fn command_name(&self, _system_details: SystemDetails) -> Result<String> {
+        Ok(self.command_name.clone())
+    }
+
+    fn args(&self, _system_details: SystemDetails) -> Option<Vec<String>> {
+        Some(vec![
+            self.target_subcommand.clone(),
+            self.autoconfirm.clone(),
+        ])
+    }
+
+    fn needs_root(&self) -> bool {
+        true
+    }
+}
+
 impl PackageManager {
-    pub fn new(name: &str, install_subcommand: Option<&str>, autoconfirm: Option<&str>) -> Self {
+    pub fn new(
+        name: &str,
+        install_subcommand: Option<&str>,
+        update_subcommand: Option<&str>,
+        upgrade_subcommand: Option<&str>,
+        autoconfirm: Option<&str>,
+    ) -> Self {
         PackageManager {
             name: String::from(name),
             install_subcommand: install_subcommand.map(String::from),
+            update_subcommand: update_subcommand.map(String::from),
+            upgrade_subcommand: upgrade_subcommand.map(String::from),
             autoconfirm: autoconfirm.map(String::from),
+        }
+    }
+
+    pub fn update_operation(&self) -> impl RunnableOperation {
+        SystemRefreshOperation {
+            command_name: self.name.clone(),
+            target_subcommand: self.update_subcommand.as_ref().unwrap().clone(),
+            autoconfirm: self.autoconfirm.as_ref().unwrap().clone(),
+        }
+    }
+
+    pub fn upgrade_operation(&self) -> impl RunnableOperation {
+        SystemRefreshOperation {
+            command_name: self.name.clone(),
+            target_subcommand: self.upgrade_subcommand.as_ref().unwrap().clone(),
+            autoconfirm: self.autoconfirm.as_ref().unwrap().clone(),
         }
     }
 }
@@ -23,13 +76,19 @@ impl From<TargetOperatingSystem> for Option<PackageManager> {
             TargetOperatingSystem::Arch => Some(PackageManager::new(
                 "pacman",
                 Some("-S"),
+                Some("-Sy"),
+                Some("-Syu"),
                 Some("--noconfirm"),
             )),
             TargetOperatingSystem::Debian
             | TargetOperatingSystem::Ubuntu
-            | TargetOperatingSystem::Mint => {
-                Some(PackageManager::new("apt-get", Some("install"), Some("-y")))
-            }
+            | TargetOperatingSystem::Mint => Some(PackageManager::new(
+                "apt-get",
+                Some("install"),
+                Some("update"),
+                Some("upgrade"),
+                Some("-y"),
+            )),
             TargetOperatingSystem::Unknown => None,
         }
     }
@@ -232,6 +291,8 @@ mod tests {
             Some(PackageManager::new(
                 "pacman",
                 Some("-S"),
+                Some("-Sy"),
+                Some("-Syu"),
                 Some("--noconfirm")
             ))
         );
@@ -241,6 +302,8 @@ mod tests {
             Some(PackageManager::new(
                 "apt-get",
                 Some("install"),
+                Some("update"),
+                Some("upgrade"),
                 Some("-y")
             ))
         );
@@ -250,6 +313,8 @@ mod tests {
             Some(PackageManager::new(
                 "apt-get",
                 Some("install"),
+                Some("update"),
+                Some("upgrade"),
                 Some("-y")
             ))
         );
@@ -257,8 +322,10 @@ mod tests {
             mint,
             TargetOperatingSystem::Mint,
             Some(PackageManager::new(
-                "apt-get", 
-                Some("install"), 
+                "apt-get",
+                Some("install"),
+                Some("update"),
+                Some("upgrade"),
                 Some("-y")
             ))
         );

@@ -14,6 +14,7 @@ use crate::error::{Error, Result};
 
 use super::run_command;
 
+/// Download all files that are listed in the configuration.
 pub async fn execute_download_operations(config: &Configuration) -> Result<()> {
     match &config.file_downloads {
         Some(operations) => join_all(

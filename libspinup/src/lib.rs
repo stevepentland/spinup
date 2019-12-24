@@ -1,3 +1,8 @@
+//! `libspinup` provides a common entry point for all functionality
+//! used by the `spinup` binary.
+//!
+//! Currently, there is only one operation, which is to run the app. However
+//! in the future this could change.
 #[macro_use]
 extern crate log;
 

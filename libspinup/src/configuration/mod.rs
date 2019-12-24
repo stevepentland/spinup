@@ -35,6 +35,10 @@ pub struct Configuration {
     /// The current system details when this configuration was created
     #[serde(skip, default = "SystemDetails::default")]
     pub system_details: SystemDetails,
+
+    /// Whether to run a system update _before_ executing other operations
+    #[serde(default)]
+    pub update_system: bool,
 }
 
 /// Read in the configuration file specified by `config_path` and parse its contents
