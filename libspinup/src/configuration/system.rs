@@ -132,9 +132,7 @@ impl From<TargetOperatingSystem> for PackageManager {
             TargetOperatingSystem::Arch => {
                 PackageManager::new("pacman", "-S", "-Sy", "-Syu", "--noconfirm")
             }
-            TargetOperatingSystem::Debian
-            | TargetOperatingSystem::Ubuntu
-            | TargetOperatingSystem::Mint => {
+            TargetOperatingSystem::Debian => {
                 PackageManager::new("apt-get", "install", "update", "upgrade", "-y")
             }
             TargetOperatingSystem::Unknown => PackageManager::new("", "", "", "", ""),
@@ -147,8 +145,6 @@ impl From<TargetOperatingSystem> for PackageManager {
 pub enum TargetOperatingSystem {
     Arch,
     Debian,
-    Ubuntu,
-    Mint,
     Unknown,
 }
 
@@ -195,9 +191,7 @@ impl From<&str> for TargetOperatingSystem {
     fn from(name: &str) -> Self {
         match &name.to_lowercase()[..] {
             "arch" | "archlinux" | "manjaro" => TargetOperatingSystem::Arch,
-            "debian" => TargetOperatingSystem::Debian,
-            "linuxmint" | "mint" => TargetOperatingSystem::Mint,
-            "ubuntu" => TargetOperatingSystem::Ubuntu,
+            "debian" | "linuxmint" | "mint" | "ubuntu" => TargetOperatingSystem::Debian,
             _ => TargetOperatingSystem::Unknown,
         }
     }
@@ -292,13 +286,13 @@ mod tests {
             ubuntu,
             Some(String::from("ubuntu")),
             None,
-            TargetOperatingSystem::Ubuntu
+            TargetOperatingSystem::Debian
         );
         (
             ubuntu_no_fallback_to_id_like,
             Some(String::from("ubuntu")),
             Some(String::from("debian")),
-            TargetOperatingSystem::Ubuntu
+            TargetOperatingSystem::Debian
         );
         (
             debian_from_id,
@@ -316,7 +310,7 @@ mod tests {
             mint,
             Some(String::from("linuxmint")),
             Some(String::from("ubuntu")),
-            TargetOperatingSystem::Mint
+            TargetOperatingSystem::Debian
         )
     );
 
@@ -361,30 +355,6 @@ mod tests {
             true
         );
         (
-            ubuntu,
-            TargetOperatingSystem::Ubuntu,
-            PackageManager::new(
-                "apt-get",
-                "install",
-                "update",
-                "upgrade",
-                "-y"
-            ),
-            true
-        );
-        (
-            mint,
-            TargetOperatingSystem::Mint,
-            PackageManager::new(
-                "apt-get",
-                "install",
-                "update",
-                "upgrade",
-                "-y"
-            ),
-            true
-        );
-        (
             unknown,
             TargetOperatingSystem::Unknown,
             PackageManager::new(
@@ -407,7 +377,7 @@ mod tests {
 
     #[test]
     fn test_current_os_reflects_target() {
-        let expected = TargetOperatingSystem::Ubuntu;
+        let expected = TargetOperatingSystem::Debian;
         let actual = SystemDetails::new(expected);
         assert_eq!(expected, actual.current_os());
     }

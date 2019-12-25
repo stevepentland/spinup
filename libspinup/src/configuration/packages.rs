@@ -156,7 +156,7 @@ mod tests {
             distro_packages: None,
         };
         let actual_res =
-            package_list.command_name(SystemDetails::new(TargetOperatingSystem::Ubuntu));
+            package_list.command_name(SystemDetails::new(TargetOperatingSystem::Debian));
         assert!(actual_res.is_err());
     }
 
@@ -183,7 +183,7 @@ mod tests {
             }]),
         };
         let actual_res =
-            package_list.command_name(SystemDetails::new(TargetOperatingSystem::Ubuntu));
+            package_list.command_name(SystemDetails::new(TargetOperatingSystem::Debian));
         assert!(actual_res.is_err());
     }
 

@@ -125,7 +125,7 @@ mod tests {
     #[test]
     fn test_get_none_args() {
         let command = CustomCommand::new(String::from("git"), None, false);
-        let actual = command.args(SystemDetails::new(TargetOperatingSystem::Mint));
+        let actual = command.args(SystemDetails::new(TargetOperatingSystem::Debian));
         assert!(actual.is_none());
     }
 }
