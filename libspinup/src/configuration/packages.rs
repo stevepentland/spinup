@@ -80,27 +80,27 @@ impl RunnableOperation for PackageList {
             ));
         }
 
-        system_details
-            .package_manager()
-            .ok_or_else(|| {
-                Error::from(
-                    "Spinup does not have a package manager configuration for this platform",
-                )
-            })
-            .map(|pm| pm.name)
+        system_details.package_manager().name().ok_or_else(|| {
+            Error::from("Spinup does not have a package manager configuration for this platform")
+        })
     }
 
     fn args(&self, system_details: SystemDetails) -> Option<Vec<String>> {
         if !self.has_base_packages() && !self.has_distro_packages(system_details) {
             return None;
         }
-        let package_manager = system_details.package_manager()?;
+
+        let package_manager = system_details.package_manager();
+
+        if !package_manager.can_run() {
+            return None;
+        }
 
         let mut install_args = vec![];
-        if let Some(install_command) = package_manager.install_subcommand {
+        if let Some(install_command) = package_manager.install_subcommand() {
             install_args.push(install_command);
         }
-        if let Some(autoconfirm) = package_manager.autoconfirm {
+        if let Some(autoconfirm) = package_manager.autoconfirm() {
             install_args.push(autoconfirm);
         }
 

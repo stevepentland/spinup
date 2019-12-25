@@ -1,21 +1,43 @@
+//! The system configuration module contains definitions and implementations
+//! for dealing with the host operating system. This includes package managers,
+//! update & upgrade commands, etc.
+
 use sys_info;
 
 use crate::error::Result;
 use crate::operations::RunnableOperation;
 
+/// Defines the set of commands required to interact with the
+/// package manager of the host OS.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PackageManager {
-    pub name: String,
-    pub install_subcommand: Option<String>,
-    pub update_subcommand: Option<String>,
-    pub upgrade_subcommand: Option<String>,
-    pub autoconfirm: Option<String>,
+    /// This is the name of the package manager (e.g. `apt-get`, `pacman`)
+    name: String,
+
+    /// The command passed to [`name`](struct.PackageManager.html#structfield.name) to install packages
+    install_subcommand: String,
+
+    /// The command passed to [`name`](struct.PackageManager.html#structfield.name) to update package lists
+    update_subcommand: String,
+
+    /// The command passed to [`name`](struct.PackageManager.html#structfield.name) to upgrade system packages
+    upgrade_subcommand: String,
+
+    /// The argument that will bypass confirmation requests
+    autoconfirm: String,
 }
 
+/// Internal struct used to make runnable operations on the fly
 #[derive(Debug, Clone)]
 struct SystemRefreshOperation {
+    /// The command to run, generally will be the backing [`name`](struct.PackageManager.html#structfield.name)
     pub command_name: String,
+
+    /// The subcommand, which is generally [`update_subcommand`](struct.PackageManager.html#structfield.update_subcommand)
+    /// or [`upgrade_subcommand`](struct.PackageManager.html#structfield.upgrade_subcommand)
     pub target_subcommand: String,
+
+    /// The autoconfirm argument value
     pub autoconfirm: String,
 }
 
@@ -37,63 +59,90 @@ impl RunnableOperation for SystemRefreshOperation {
 }
 
 impl PackageManager {
-    pub fn new(
+    fn new(
         name: &str,
-        install_subcommand: Option<&str>,
-        update_subcommand: Option<&str>,
-        upgrade_subcommand: Option<&str>,
-        autoconfirm: Option<&str>,
+        install_subcommand: &str,
+        update_subcommand: &str,
+        upgrade_subcommand: &str,
+        autoconfirm: &str,
     ) -> Self {
         PackageManager {
-            name: String::from(name),
-            install_subcommand: install_subcommand.map(String::from),
-            update_subcommand: update_subcommand.map(String::from),
-            upgrade_subcommand: upgrade_subcommand.map(String::from),
-            autoconfirm: autoconfirm.map(String::from),
+            name: name.to_string(),
+            install_subcommand: install_subcommand.to_string(),
+            update_subcommand: update_subcommand.to_string(),
+            upgrade_subcommand: upgrade_subcommand.to_string(),
+            autoconfirm: autoconfirm.to_string(),
         }
     }
 
+    /// Get the system update operation for this package manager
     pub fn update_operation(&self) -> impl RunnableOperation {
         SystemRefreshOperation {
             command_name: self.name.clone(),
-            target_subcommand: self.update_subcommand.as_ref().unwrap().clone(),
-            autoconfirm: self.autoconfirm.as_ref().unwrap().clone(),
+            target_subcommand: self.update_subcommand.clone(),
+            autoconfirm: self.autoconfirm.clone(),
         }
     }
 
+    /// Get the system upgrade operation for this package manager
     pub fn upgrade_operation(&self) -> impl RunnableOperation {
         SystemRefreshOperation {
             command_name: self.name.clone(),
-            target_subcommand: self.upgrade_subcommand.as_ref().unwrap().clone(),
-            autoconfirm: self.autoconfirm.as_ref().unwrap().clone(),
+            target_subcommand: self.upgrade_subcommand.clone(),
+            autoconfirm: self.autoconfirm.clone(),
         }
+    }
+
+    /// This is the name of the package manager (e.g. `apt-get`, `pacman`)
+    pub fn name(&self) -> Option<String> {
+        if self.name.is_empty() {
+            None
+        } else {
+            Some(self.name.clone())
+        }
+    }
+
+    /// The command passed to [`name`](struct.PackageManager.html#method.name) to install packages
+    pub fn install_subcommand(&self) -> Option<String> {
+        if self.install_subcommand.is_empty() {
+            None
+        } else {
+            Some(self.install_subcommand.clone())
+        }
+    }
+
+    /// The argument that will bypass confirmation requests
+    pub fn autoconfirm(&self) -> Option<String> {
+        if self.autoconfirm.is_empty() {
+            None
+        } else {
+            Some(self.autoconfirm.clone())
+        }
+    }
+
+    /// Whether this package manager has a configured setup
+    pub fn can_run(&self) -> bool {
+        self.name().is_some()
     }
 }
 
-impl From<TargetOperatingSystem> for Option<PackageManager> {
+impl From<TargetOperatingSystem> for PackageManager {
     fn from(target_os: TargetOperatingSystem) -> Self {
         match target_os {
-            TargetOperatingSystem::Arch => Some(PackageManager::new(
-                "pacman",
-                Some("-S"),
-                Some("-Sy"),
-                Some("-Syu"),
-                Some("--noconfirm"),
-            )),
+            TargetOperatingSystem::Arch => {
+                PackageManager::new("pacman", "-S", "-Sy", "-Syu", "--noconfirm")
+            }
             TargetOperatingSystem::Debian
             | TargetOperatingSystem::Ubuntu
-            | TargetOperatingSystem::Mint => Some(PackageManager::new(
-                "apt-get",
-                Some("install"),
-                Some("update"),
-                Some("upgrade"),
-                Some("-y"),
-            )),
-            TargetOperatingSystem::Unknown => None,
+            | TargetOperatingSystem::Mint => {
+                PackageManager::new("apt-get", "install", "update", "upgrade", "-y")
+            }
+            TargetOperatingSystem::Unknown => PackageManager::new("", "", "", "", ""),
         }
     }
 }
 
+/// An identified operating system
 #[derive(Debug, PartialEq, Copy, Clone, Eq)]
 pub enum TargetOperatingSystem {
     Arch,
@@ -103,6 +152,7 @@ pub enum TargetOperatingSystem {
     Unknown,
 }
 
+/// Collection of details for the current host system
 #[derive(Debug, Copy, Clone)]
 pub struct SystemDetails {
     target_os: TargetOperatingSystem,
@@ -113,8 +163,8 @@ impl SystemDetails {
         SystemDetails { target_os }
     }
 
-    pub fn package_manager(self) -> Option<PackageManager> {
-        self.target_os.into()
+    pub fn package_manager(self) -> PackageManager {
+        PackageManager::from(self.target_os)
     }
 
     pub fn current_os(self) -> TargetOperatingSystem {
@@ -271,13 +321,14 @@ mod tests {
     );
 
     macro_rules! package_manager_tests {
-        ($(($name:ident, $target:expr, $expected:expr));+) => {
+        ($(($name:ident, $target:expr, $expected:expr, $can_run:expr));+) => {
             $(
                 paste::item!(
                     #[test]
                     fn [<test_package_manager_from_ $name>]() {
-                        let actual: Option<PackageManager> = $target.into();
+                        let actual: PackageManager = $target.into();
                         assert_eq!($expected, actual);
+                        assert_eq!($can_run, actual.can_run())
                     }
                 );
             )*
@@ -288,51 +339,62 @@ mod tests {
         (
             arch,
             TargetOperatingSystem::Arch,
-            Some(PackageManager::new(
+            PackageManager::new(
                 "pacman",
-                Some("-S"),
-                Some("-Sy"),
-                Some("-Syu"),
-                Some("--noconfirm")
-            ))
+                "-S",
+                "-Sy",
+                "-Syu",
+                "--noconfirm",
+            ),
+            true
         );
         (
             debian,
             TargetOperatingSystem::Debian,
-            Some(PackageManager::new(
+            PackageManager::new(
                 "apt-get",
-                Some("install"),
-                Some("update"),
-                Some("upgrade"),
-                Some("-y")
-            ))
+                "install",
+                "update",
+                "upgrade",
+                "-y"
+            ),
+            true
         );
         (
             ubuntu,
             TargetOperatingSystem::Ubuntu,
-            Some(PackageManager::new(
+            PackageManager::new(
                 "apt-get",
-                Some("install"),
-                Some("update"),
-                Some("upgrade"),
-                Some("-y")
-            ))
+                "install",
+                "update",
+                "upgrade",
+                "-y"
+            ),
+            true
         );
         (
             mint,
             TargetOperatingSystem::Mint,
-            Some(PackageManager::new(
+            PackageManager::new(
                 "apt-get",
-                Some("install"),
-                Some("update"),
-                Some("upgrade"),
-                Some("-y")
-            ))
+                "install",
+                "update",
+                "upgrade",
+                "-y"
+            ),
+            true
         );
         (
             unknown,
             TargetOperatingSystem::Unknown,
-            None
+            PackageManager::new(
+                "",
+                "",
+                "",
+                "",
+                ""
+            ),
+            false
         )
     );
 
