@@ -6,6 +6,9 @@
 #[macro_use]
 extern crate log;
 
+#[macro_use]
+extern crate lazy_static;
+
 use flexi_logger::Logger;
 
 pub mod configuration;

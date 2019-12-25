@@ -2,10 +2,29 @@
 //! for dealing with the host operating system. This includes package managers,
 //! update & upgrade commands, etc.
 
+use std::collections::HashMap;
+
 use sys_info;
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::operations::RunnableOperation;
+
+lazy_static! {
+    static ref OS_MAPPINGS: HashMap<&'static str, TargetOperatingSystem> = {
+        let mut h = HashMap::new();
+        h.insert("arch", TargetOperatingSystem::Arch);
+        h.insert("archlinux", TargetOperatingSystem::Arch);
+        h.insert("manjaro", TargetOperatingSystem::Arch);
+        h.insert("debian", TargetOperatingSystem::Debian);
+        h.insert("linuxmint", TargetOperatingSystem::Debian);
+        h.insert("mint", TargetOperatingSystem::Debian);
+        h.insert("ubuntu", TargetOperatingSystem::Debian);
+        h.insert("fedora", TargetOperatingSystem::Fedora);
+        h.insert("centos", TargetOperatingSystem::Fedora);
+        h.insert("rhel", TargetOperatingSystem::RedHat);
+        h
+    };
+}
 
 /// Defines the set of commands required to interact with the
 /// package manager of the host OS.
@@ -41,9 +60,25 @@ struct SystemRefreshOperation {
     pub autoconfirm: String,
 }
 
+impl SystemRefreshOperation {
+    fn new(command_name: &str, target_subcommand: &str, autoconfirm: &str) -> Self {
+        SystemRefreshOperation {
+            command_name: command_name.to_string(),
+            target_subcommand: target_subcommand.to_string(),
+            autoconfirm: autoconfirm.to_string(),
+        }
+    }
+}
+
 impl RunnableOperation for SystemRefreshOperation {
     fn command_name(&self, _system_details: SystemDetails) -> Result<String> {
-        Ok(self.command_name.clone())
+        if self.command_name.is_empty() {
+            Err(Error::from(
+                "Cannot run update/upgrade operations on this platform",
+            ))
+        } else {
+            Ok(self.command_name.clone())
+        }
     }
 
     fn args(&self, _system_details: SystemDetails) -> Option<Vec<String>> {
@@ -75,22 +110,28 @@ impl PackageManager {
         }
     }
 
-    /// Get the system update operation for this package manager
-    pub fn update_operation(&self) -> impl RunnableOperation {
-        SystemRefreshOperation {
-            command_name: self.name.clone(),
-            target_subcommand: self.update_subcommand.clone(),
-            autoconfirm: self.autoconfirm.clone(),
+    /// Get the system update operation for this package manager.
+    ///
+    /// ## Note:
+    /// If this [`PackageManager`](struct.PackageManager.html) uses the same command
+    /// for updating & upgrading, this will return `None` and the upgrade operation
+    /// should be used on its own.
+    pub fn update_operation(&self) -> Option<impl RunnableOperation> {
+        // If update subcommand == upgrade subcommand, just indicate to run upgrade
+        if self.update_subcommand == self.upgrade_subcommand {
+            None
+        } else {
+            Some(SystemRefreshOperation::new(
+                &self.name,
+                &self.update_subcommand,
+                &self.autoconfirm,
+            ))
         }
     }
 
     /// Get the system upgrade operation for this package manager
     pub fn upgrade_operation(&self) -> impl RunnableOperation {
-        SystemRefreshOperation {
-            command_name: self.name.clone(),
-            target_subcommand: self.upgrade_subcommand.clone(),
-            autoconfirm: self.autoconfirm.clone(),
-        }
+        SystemRefreshOperation::new(&self.name, &self.upgrade_subcommand, &self.autoconfirm)
     }
 
     /// This is the name of the package manager (e.g. `apt-get`, `pacman`)
@@ -135,6 +176,12 @@ impl From<TargetOperatingSystem> for PackageManager {
             TargetOperatingSystem::Debian => {
                 PackageManager::new("apt-get", "install", "update", "upgrade", "-y")
             }
+            TargetOperatingSystem::Fedora => {
+                PackageManager::new("dnf", "install", "upgrade", "upgrade", "--assumeyes")
+            }
+            TargetOperatingSystem::RedHat => {
+                PackageManager::new("yum", "install", "upgrade", "upgrade", "--assumeyes")
+            }
             TargetOperatingSystem::Unknown => PackageManager::new("", "", "", "", ""),
         }
     }
@@ -145,6 +192,8 @@ impl From<TargetOperatingSystem> for PackageManager {
 pub enum TargetOperatingSystem {
     Arch,
     Debian,
+    RedHat, // RedHat is distinct until dnf is shipped by default
+    Fedora,
     Unknown,
 }
 
@@ -155,14 +204,17 @@ pub struct SystemDetails {
 }
 
 impl SystemDetails {
+    /// Create an instance of [`SystemDetails`](struct.SystemDetails.html) using the provided target os
     pub fn new(target_os: TargetOperatingSystem) -> Self {
         SystemDetails { target_os }
     }
 
+    /// Get the [`PackageManager`](struct.PackageManager.html) that corresponds with this system
     pub fn package_manager(self) -> PackageManager {
         PackageManager::from(self.target_os)
     }
 
+    /// Gets the current OS that is being run on
     pub fn current_os(self) -> TargetOperatingSystem {
         self.target_os
     }
@@ -189,11 +241,10 @@ impl From<sys_info::LinuxOSReleaseInfo> for SystemDetails {
 
 impl From<&str> for TargetOperatingSystem {
     fn from(name: &str) -> Self {
-        match &name.to_lowercase()[..] {
-            "arch" | "archlinux" | "manjaro" => TargetOperatingSystem::Arch,
-            "debian" | "linuxmint" | "mint" | "ubuntu" => TargetOperatingSystem::Debian,
-            _ => TargetOperatingSystem::Unknown,
-        }
+        OS_MAPPINGS
+            .get(name)
+            .copied()
+            .unwrap_or(TargetOperatingSystem::Unknown)
     }
 }
 
@@ -311,6 +362,42 @@ mod tests {
             Some(String::from("linuxmint")),
             Some(String::from("ubuntu")),
             TargetOperatingSystem::Debian
+        );
+        (
+            fedora,
+            Some(String::from("fedora")),
+            None,
+            TargetOperatingSystem::Fedora
+        );
+        (
+            fedora_from_like,
+            Some(String::from("randomdistro")),
+            Some(String::from("fedora")),
+            TargetOperatingSystem::Fedora
+        );
+        (
+            centos,
+            Some(String::from("centos")),
+            None,
+            TargetOperatingSystem::Fedora
+        );
+        (
+            centos_from_like,
+            Some(String::from("randomdistro")),
+            Some(String::from("distro2 centos")),
+            TargetOperatingSystem::Fedora
+        );
+        (
+            rhel,
+            Some(String::from("rhel")),
+            None,
+            TargetOperatingSystem::RedHat
+        );
+        (
+            rhel_from_id_like,
+            Some(String::from("unknowndistro")),
+            Some(String::from("rhel")),
+            TargetOperatingSystem::RedHat
         )
     );
 
@@ -365,6 +452,18 @@ mod tests {
                 ""
             ),
             false
+        );
+        (
+            fedora,
+            TargetOperatingSystem::Fedora,
+            PackageManager::new("dnf", "install", "upgrade", "upgrade", "--assumeyes"),
+            true
+        );
+        (
+            redhat,
+            TargetOperatingSystem::RedHat,
+            PackageManager::new("yum", "install", "upgrade", "upgrade", "--assumeyes"),
+            true
         )
     );
 
@@ -380,5 +479,32 @@ mod tests {
         let expected = TargetOperatingSystem::Debian;
         let actual = SystemDetails::new(expected);
         assert_eq!(expected, actual.current_os());
+    }
+
+    #[test]
+    fn test_no_update_redhat() {
+        let actual = PackageManager::from(TargetOperatingSystem::RedHat);
+        assert!(actual.update_operation().is_none());
+    }
+
+    #[test]
+    fn test_no_update_fedora() {
+        let actual = PackageManager::from(TargetOperatingSystem::Fedora);
+        assert!(actual.update_operation().is_none());
+    }
+
+    #[test]
+    fn test_system_refresh_runable_command_name_value() {
+        let actual = SystemRefreshOperation::new("apt", "", "");
+        let command = actual.command_name(SystemDetails::new(TargetOperatingSystem::Debian));
+        assert!(command.is_ok());
+        assert_eq!(command.unwrap(), "apt");
+    }
+
+    #[test]
+    fn test_system_refresh_runnable_err_command_name() {
+        let actual = SystemRefreshOperation::new("", "", "");
+        let command = actual.command_name(SystemDetails::new(TargetOperatingSystem::Debian));
+        assert!(command.is_err());
     }
 }
