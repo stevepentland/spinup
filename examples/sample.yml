@@ -1,0 +1,70 @@
+---
+package_list:
+  base_packages:
+    - zsh
+    - git
+    - exa
+    - ripgrep
+    - restic
+    - neovim
+    - snapd
+    - xclip
+    - curl
+    - tmux
+    - tlp
+    - flameshot
+  distro_packages:
+    - target_os: arch
+      packages:
+        - bat
+        - pcsclite
+        - ccid
+        - libu2f-host
+    - target_os: ubuntu
+      packages:
+        - gnupg2
+        - pcscd
+        - scdaemon
+        - pcsc-tools
+file_downloads:
+  - base_dir: ~/temp
+    after_complete:
+      command: rm
+      args:
+        - "-rf"
+        - ~/temp
+      needs_root: false
+    files:
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"
+        target: Ubuntu Mono Nerd Font Complete.ttf
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete%20Mono.ttf"
+        target: Ubuntu Mono Nerd Font Complete Mono.ttf
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Inconsolata/complete/Inconsolata%20Regular%20Nerd%20Font%20Complete.ttf"
+        target: Inconsolata Regular Nerd Font Complete.ttf
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Inconsolata/complete/Inconsolata%20Regular%20Nerd%20Font%20Complete%20Mono.ttf"
+        target: Inconsolata Regular Nerd Font Complete Mono.ttf
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete.ttf"
+        target: Sauce Code Pro Nerd Font Complete.ttf
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete%20Mono.ttf"
+        target: Sauce Code Pro Nerd Font Complete Mono.ttf
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/complete/Fura%20Code%20Regular%20Nerd%20Font%20Complete.ttf"
+        target: Fura Code Regular Nerd Font Complete.ttf
+      - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/complete/Fura%20Code%20Regular%20Nerd%20Font%20Complete%20Mono.ttf"
+        target: Fura Code Regular Nerd Font Complete Mono.ttf
+snaps:
+  standard_snaps:
+    names:
+      - postman
+      - mailspring
+      - audacity
+      - discord
+      - spotify
+      - firefox
+  alternate_snaps:
+    - name: code
+      classic: true
+      channel: stable
+    - name: shotcut
+      classic: true
+      channel: stable
+update_system: true

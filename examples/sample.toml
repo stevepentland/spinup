@@ -1,3 +1,5 @@
+update_system = true
+
 [[file_downloads]]
 base_dir = '~/temp'
 
@@ -73,7 +75,6 @@ packages = [
     'scdaemon',
     'pcsc-tools',
 ]
-
 [[snaps.alternate_snaps]]
 name = 'code'
 classic = true

@@ -84,10 +84,10 @@ fn write_other_config_files(config: &Configuration) {
     use std::fs::File;
     use std::io::Write;
     // Write JSON
-    let mut j_file = File::create("./data/sample.json").unwrap();
+    let mut j_file = File::create("./examples/sample.json").unwrap();
     let _ = j_file.write(serde_json::to_string_pretty(&config).unwrap().as_bytes());
     // Write yaml
-    let mut y_file = File::create("./data/sample.yml").unwrap();
+    let mut y_file = File::create("./examples/sample.yml").unwrap();
     let _ = y_file.write(serde_yaml::to_string(&config).unwrap().as_bytes());
 }
 

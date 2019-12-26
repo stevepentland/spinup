@@ -280,19 +280,19 @@ packages:
 
     #[test]
     fn test_reading_in_good_toml_config() {
-        let actual = read_in_config("../data/sample.toml");
+        let actual = read_in_config("../examples/sample.toml");
         assert!(actual.is_ok());
     }
 
     #[test]
     fn test_reading_in_good_json_config() {
-        let actual = read_in_config("../data/sample.json");
+        let actual = read_in_config("../examples/sample.json");
         assert!(actual.is_ok());
     }
 
     #[test]
     fn test_reading_in_good_yaml_config() {
-        let actual = read_in_config("../data/sample.yml");
+        let actual = read_in_config("../examples/sample.yml");
         assert!(actual.is_ok());
     }
 
@@ -304,13 +304,13 @@ packages:
 
     #[test]
     fn test_guess_unknown_syntax() {
-        let actual = guess_file_syntax(Path::new("../data/noextension"));
+        let actual = guess_file_syntax(Path::new("../examples/noextension"));
         assert_eq!(actual, FileSyntax::Unknown);
     }
 
     #[test]
     fn test_guess_unknown_from_unknown_extension() {
-        let actual = guess_file_syntax(Path::new("../data/setup.sh"));
+        let actual = guess_file_syntax(Path::new("../examples/sample-noext"));
         assert_eq!(actual, FileSyntax::Unknown);
     }
 }
