@@ -39,9 +39,12 @@ pub async fn run_app(matches: clap::ArgMatches<'_>) -> Result<()> {
         println!("{:#?}", config);
     }
 
-    if cfg!(debug_assertions) && matches.is_present("generate") {
-        write_other_config_files(&config);
-        return Ok(());
+    #[cfg(debug_assertions)]
+    {
+        if matches.is_present("generate") {
+            write_other_config_files(&config);
+            return Ok(());
+        }
     }
 
     if !matches.is_present("no-packages") {
