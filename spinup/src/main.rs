@@ -4,7 +4,9 @@ extern crate clap;
 extern crate log;
 
 use clap::{App, Arg};
-use libspinup::run_app;
+use libspinup::{run_app, RunConfig};
+
+const DEFAULT_LOG_LEVEL: &str = "warn";
 
 #[cfg_attr(tarpaulin, skip)]
 #[tokio::main]
@@ -80,8 +82,9 @@ async fn main() {
     }
 
     let matches = app.get_matches();
+    let run_config = build_run_config(matches);
 
-    let res = run_app(matches).await;
+    let res = run_app(run_config).await;
 
     ::std::process::exit(match res {
         Ok(()) => 0,
@@ -90,4 +93,31 @@ async fn main() {
             1
         }
     });
+}
+
+fn build_run_config(matches: clap::ArgMatches) -> RunConfig {
+    let log_level = get_log_level(
+        matches.occurrences_of("verbose"),
+        matches.is_present("quiet"),
+    );
+    RunConfig::new(
+        matches.value_of("CONFIG").unwrap().to_owned(),
+        log_level,
+        !matches.is_present("no-packages"),
+        !matches.is_present("no-files"),
+        !matches.is_present("no-snaps"),
+        matches.is_present("print-parsed"),
+    )
+}
+
+fn get_log_level(verbosity: u64, is_quiet: bool) -> &'static str {
+    if is_quiet {
+        return "off";
+    }
+    match verbosity {
+        0 => DEFAULT_LOG_LEVEL,
+        1 => "info",
+        2 => "debug",
+        _ => "trace",
+    }
 }
