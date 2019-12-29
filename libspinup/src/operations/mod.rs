@@ -43,7 +43,7 @@ pub trait RunnableOperation {
 
 /// Helper function that queries `libc` to check whether we're inside a
 /// superuser process.
-pub fn process_is_root() -> bool {
+pub(crate) fn process_is_root() -> bool {
     unsafe {
         let uid = libc::getuid();
         uid == 0
@@ -71,49 +71,48 @@ fn get_root() -> Result<()> {
 /// - `runnable`: The `RunnableOperation` to execute
 /// - `system_details`: The current configuration's system details for which system we're running in
 fn run_command(runnable: &impl RunnableOperation, system_details: SystemDetails) -> Result<()> {
-    let mut command = Command::new("sh");
-    command.arg("-c");
+    let command_name = runnable.command_name(system_details)?;
+    let (base_command, first_arg) = {
+        if runnable.needs_root() {
+            get_root()?;
+            ("sudo", Some(&command_name[..]))
+        } else {
+            (&command_name[..], None)
+        }
+    };
 
-    if runnable.needs_root() {
-        get_root()?;
-        command.arg("sudo");
+    let mut command = Command::new(base_command);
+
+    if let Some(arg) = first_arg {
+        command.arg(arg);
     }
 
-    let command_name = runnable.command_name(system_details)?;
+    let args = runnable.args(system_details).unwrap_or_default();
 
-    let command_args = runnable.args(system_details).unwrap_or_default();
+    debug!("Running command: {} {:#?}", &command_name, &args);
 
     let status = command
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .arg(&command_name)
-        .args(command_args)
+        .args(args)
         .spawn()?
-        .wait()?;
+        .wait_with_output()?;
 
-    if status.success() {
-        Ok(())
-    } else {
-        let code = match status.code() {
-            Some(code) => code.to_string(),
-            None => "unknown".to_string(),
-        };
-        Err(Error::from(format!(
-            "While running command {}, received exit status code {}",
-            command_name, code
-        )))
-    }
+    let command_run = first_arg.unwrap_or(base_command);
+
+    handle_process_output(command_run, status)
 }
 
-// TODO: Look into using this with `run_command`
-fn _handle_process_output(output: std::process::Output) -> Result<()> {
+/// Helper that handles the process output of any run commands and offers
+/// logging capabilities.
+fn handle_process_output(cmd: &str, output: std::process::Output) -> Result<()> {
     if let Some(code) = output.status.code() {
         if code == 0 {
-            info!("Package install process completed successfully");
+            info!("Command execution of {} completed successfully", cmd);
             Ok(())
         } else {
             use log::{max_level, LevelFilter};
-            warn!("Package install returned status of {}", code);
+            warn!("Command execution of {} returned status of {}", cmd, code);
 
             // Don't bother building trace output unless we're actually using it
             if max_level() == LevelFilter::Trace {
@@ -126,7 +125,7 @@ fn _handle_process_output(output: std::process::Output) -> Result<()> {
                     debug!("Stderr: \n{}", stderr);
                 }
             }
-            Err(format!("Package manager returned status of '{}'.\nRun with higher verbosity to see more output", code).into())
+            Err(Error::from(format!("Package manager returned status of '{}'.\nRun with higher verbosity to see more output", code)))
         }
     } else {
         Ok(())
