@@ -1,7 +1,7 @@
 update_system = true
 
 [[file_downloads]]
-base_dir = '~/temp'
+base_dir = '~/.local/share/fonts'
 
 [[file_downloads.files]]
 source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
@@ -36,10 +36,10 @@ source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraC
 target = 'Fura Code Regular Nerd Font Complete Mono.ttf'
 
 [file_downloads.after_complete]
-command = 'rm'
+command = 'fc-cache'
 args = [
-    '-rf',
-    '~/temp',
+    '-f',
+    '-v',
 ]
 
 [package_list]

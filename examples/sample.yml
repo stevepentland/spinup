@@ -27,12 +27,12 @@ package_list:
         - scdaemon
         - pcsc-tools
 file_downloads:
-  - base_dir: ~/temp
+  - base_dir: ~/.local/share/fonts
     after_complete:
       command: rm
       args:
-        - "-rf"
-        - ~/temp
+        - "-f"
+        - "-v"
       needs_root: false
     files:
       - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"

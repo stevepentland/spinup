@@ -37,13 +37,10 @@
   },
   "file_downloads": [
     {
-      "base_dir": "~/temp",
+      "base_dir": "~/.local/share/fonts",
       "after_complete": {
-        "command": "rm",
-        "args": [
-          "-rf",
-          "~/temp"
-        ],
+        "command": "fc-cache",
+        "args": ["-f", "-v"],
         "needs_root": false
       },
       "files": [
