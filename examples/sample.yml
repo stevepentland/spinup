@@ -29,7 +29,7 @@ package_list:
 file_downloads:
   - base_dir: ~/.local/share/fonts
     after_complete:
-      command: rm
+      command: fc-cache
       args:
         - "-f"
         - "-v"
