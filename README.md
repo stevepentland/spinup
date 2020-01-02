@@ -15,7 +15,9 @@ It will perform system upgrades, install packages via your package manager, down
 
 ## Getting Started
 
-Currently, there are no builds provided, but it can be quickly built by cloning this repo and running `cargo build --release` . Spinup will build on current stable rust, with a version of 1.39 or greater.
+Currently, an initial build is provided, but it can also be quickly built by cloning this repo and running `cargo build --release` . 
+
+Spinup will build on current stable rust, with a version of 1.39 or greater.
 
 Once you have the `spinup` binary, you can put it onto a newly installed machine and run it. In the future, builds will be populated in the [Releases](https://github.com/stevepentland/spinup/releases) page.
 
