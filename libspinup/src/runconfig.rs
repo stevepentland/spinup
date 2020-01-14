@@ -7,6 +7,7 @@ pub struct RunConfig {
     pub(crate) run_package_installs: bool,
     pub(crate) run_file_downloads: bool,
     pub(crate) run_snap_installs: bool,
+    pub(crate) run_custom_commands: bool,
     pub(crate) config_file_path: String,
     pub(crate) print_parsed: bool,
 }
@@ -18,6 +19,7 @@ impl RunConfig {
         run_package_installs: bool,
         run_file_downloads: bool,
         run_snap_installs: bool,
+        run_custom_commands: bool,
         print_parsed: bool,
     ) -> Self {
         RunConfig {
@@ -25,6 +27,7 @@ impl RunConfig {
             run_package_installs,
             run_file_downloads,
             run_snap_installs,
+            run_custom_commands,
             config_file_path,
             print_parsed,
         }

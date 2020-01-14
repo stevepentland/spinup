@@ -64,6 +64,14 @@ async fn main() {
                 .hidden(true),
         )
         .arg(
+            Arg::with_name("no-commands")
+                .short("C")
+                .long("no-commands")
+                .help("Don't run custom commands or command sets")
+                .multiple(false)
+                .takes_value(false),
+        )
+        .arg(
             Arg::with_name("CONFIG")
                 .help("The input configuration file")
                 .required(true)
@@ -106,6 +114,7 @@ fn build_run_config(matches: clap::ArgMatches) -> RunConfig {
         !matches.is_present("no-packages"),
         !matches.is_present("no-files"),
         !matches.is_present("no-snaps"),
+        !matches.is_present("no-commands"),
         matches.is_present("print-parsed"),
     )
 }

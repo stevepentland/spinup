@@ -8,12 +8,14 @@ use serde::{Deserialize, Serialize};
 use crate::error::{Error, Result};
 
 mod command;
+mod commandset;
 mod files;
 mod packages;
 mod snap;
 mod system;
 
 pub use command::*;
+pub use commandset::*;
 pub use files::*;
 pub use packages::*;
 pub use snap::*;
@@ -32,6 +34,11 @@ pub struct Configuration {
     /// An optional list of [`Snaps`](struct.Snaps.html) to install
     pub snaps: Option<Snaps>,
 
+    /// Custom ad-hoc commands the user wants to run
+    pub custom_commands: Option<Vec<CustomCommand>>,
+
+    pub command_sets: Option<Vec<CommandSet>>,
+
     /// Whether to run a system update _before_ executing other operations
     #[serde(default)]
     pub update_system: bool,
@@ -39,6 +46,12 @@ pub struct Configuration {
     /// The current system details when this configuration was created
     #[serde(skip, default = "SystemDetails::default")]
     pub system_details: SystemDetails,
+}
+
+/// Trait that defines a configuration section that can be validated
+/// during runtime.
+pub(crate) trait Validatable {
+    fn validate(&self) -> Result<()>;
 }
 
 /// Read in the configuration file specified by `config_path` and parse its contents
@@ -68,6 +81,17 @@ pub fn read_in_config(config_path: &str) -> Result<Configuration> {
                 .map(|_| parse_file_contents(contents, syntax_guess))?
         })?
     })?
+}
+
+impl Validatable for Configuration {
+    fn validate(&self) -> Result<()> {
+        if let Some(commands) = &self.command_sets {
+            for command in commands {
+                command.validate()?;
+            }
+        }
+        Ok(())
+    }
 }
 
 /// Possible syntax options a config file could be
@@ -312,5 +336,63 @@ packages:
     fn test_guess_unknown_from_unknown_extension() {
         let actual = guess_file_syntax(Path::new("../examples/sample-noext"));
         assert_eq!(actual, FileSyntax::Unknown);
+    }
+
+    #[test]
+    fn test_validate_with_no_command_sets() {
+        let config = Configuration {
+            package_list: None,
+            file_downloads: None,
+            snaps: None,
+            custom_commands: None,
+            command_sets: None,
+            update_system: false,
+            system_details: SystemDetails::default(),
+        };
+        assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn test_validate_with_ok_command_sets() {
+        let config = Configuration {
+            package_list: None,
+            file_downloads: None,
+            snaps: None,
+            custom_commands: None,
+            command_sets: Some(vec![CommandSet {
+                commands: vec![OrderedCommand {
+                    id: 1,
+                    command: CustomCommand::new("ls".to_string(), None, false),
+                }],
+            }]),
+            update_system: false,
+            system_details: SystemDetails::default(),
+        };
+        assert!(config.validate().is_ok());
+    }
+
+    #[test]
+    fn test_validate_with_err_command_sets() {
+        let config = Configuration {
+            package_list: None,
+            file_downloads: None,
+            snaps: None,
+            custom_commands: None,
+            command_sets: Some(vec![CommandSet {
+                commands: vec![
+                    OrderedCommand {
+                        id: 1,
+                        command: CustomCommand::new("ls".to_string(), None, false),
+                    },
+                    OrderedCommand {
+                        id: 1,
+                        command: CustomCommand::new("ls".to_string(), None, false),
+                    },
+                ],
+            }]),
+            update_system: false,
+            system_details: SystemDetails::default(),
+        };
+        assert!(config.validate().is_err());
     }
 }

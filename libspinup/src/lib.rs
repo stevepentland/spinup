@@ -20,6 +20,7 @@ use configuration::read_in_config;
 use error::{Error, Result};
 use operations::{
     execute_download_operations, install_packages, install_snap_packages, process_is_root,
+    run_custom_commands,
 };
 
 pub use runconfig::RunConfig;
@@ -48,6 +49,11 @@ pub async fn run_app(run_config: RunConfig) -> Result<()> {
         if let Err(e) = dls {
             return Err(e);
         }
+    }
+
+    if run_config.run_custom_commands {
+        debug!("Running custom commands");
+        run_custom_commands(&config)?;
     }
 
     if run_config.run_snap_installs {

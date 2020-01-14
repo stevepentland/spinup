@@ -12,7 +12,7 @@ use super::SystemDetails;
 /// of a command name and arguments to pass to it.
 ///
 /// **Note:** This command will be passed to `sh` via the `-c` option.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CustomCommand {
     /// The command to run, it will be passed to `sh`
     pub command: String,

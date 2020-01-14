@@ -8,10 +8,12 @@ use std::process::{Command, Stdio};
 use crate::configuration::SystemDetails;
 use crate::error::{Error, Result};
 
+mod custom_commands;
 mod file_downloads;
 mod packages;
 mod snap;
 
+pub use custom_commands::run_custom_commands;
 pub use file_downloads::execute_download_operations;
 pub use packages::install_packages;
 pub use snap::install_snap_packages;
