@@ -48,6 +48,10 @@ The following items can be defined at the top level of the configuration file:
 * `update_system` 
   + Whether to run your system's update/upgrade commands before starting the install process
   + **Note:** Implementation of this feature is currently in progress
+* [custom_commands](#custom-commands)
+  + Freeform commands you want to run on their own
+* [command_sets](#command-sets)
+  + Sets of [custom_command](#custom-commands) items you want to run in a particular order
 
 All items are optional, and if not defined, will just be skipped.
 
@@ -130,10 +134,41 @@ The objects in the `alternate_snaps` section have the following values:
 
 For actions that are not yet built-in to the program, custom commands can be leveraged to run arbitrary shell commands.
 
-Currently, these are not accepted in the main configuration as their full design has not been completely fleshed out. However they are currently in use during file download operations.
-
 Custom commands have the following properties:
 
+* `command` 
+  + This is the name of the command to run
+* `args` 
+  + An optional collection of strings that should be passed to `command` 
+* `needs_root` 
+  + Indicates whether `spinup` should run this command via `sudo` 
+
+Custom commands specified in the config file are not guaranteed to be run in any particular order. If you
+have a set of related commands that you want to run in this fashion, take a look at [command_sets](#command-sets)
+
+### Command Sets
+
+For times that you need to run a given set of operations in a particular order, command sets will likely do
+what you're looking for. Basically, they are a named collection of [Custom Commands](#custom-commands) that
+have a set ordering. During runtime, this ordering is used to execute the commands as specified.
+
+Command Sets have the following properties:
+
+* `name` 
+  + This is the name of the set of commands
+* `commands` 
+  + A listing of the commands to run
+
+#### The Commands in the Set
+
+The ordered commands are similar to [Custom Commands](#custom-commands) but have an additional field that
+specified the order in which to run them.
+
+The available fields are as follows:
+
+* `id` 
+  + A positive integer specifying where this command belongs in the set
+  + This is only a `u8` , so assign maximum values accordingly
 * `command` 
   + This is the name of the command to run
 * `args` 
@@ -146,7 +181,6 @@ Custom commands have the following properties:
 As `spinup` is still not finished, there are a lot of extra features that I'd like to add. This includes:
 
 * Flatpak support
-* Custom commands in config
 * Direct integration with package manager libs instead of using shell processes
 * Better handling of missing packages, and other errors
 * More testing, including integration testing
