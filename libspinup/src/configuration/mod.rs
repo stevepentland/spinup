@@ -24,6 +24,10 @@ pub use system::*;
 /// Main configuration struct
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Configuration {
+    /// Whether to run a system update _before_ executing other operations
+    #[serde(default)]
+    pub update_system: bool,
+
     /// An optional list of [`PackageList`](struct.PackageList.html) items to install
     pub package_list: Option<PackageList>,
 
@@ -38,10 +42,6 @@ pub struct Configuration {
     pub custom_commands: Option<Vec<CustomCommand>>,
 
     pub command_sets: Option<Vec<CommandSet>>,
-
-    /// Whether to run a system update _before_ executing other operations
-    #[serde(default)]
-    pub update_system: bool,
 
     /// The current system details when this configuration was created
     #[serde(skip, default = "SystemDetails::default")]
@@ -360,6 +360,7 @@ packages:
             snaps: None,
             custom_commands: None,
             command_sets: Some(vec![CommandSet {
+                name: "test".to_string(),
                 commands: vec![OrderedCommand {
                     id: 1,
                     command: CustomCommand::new("ls".to_string(), None, false),
@@ -379,6 +380,7 @@ packages:
             snaps: None,
             custom_commands: None,
             command_sets: Some(vec![CommandSet {
+                name: "test".to_string(),
                 commands: vec![
                     OrderedCommand {
                         id: 1,

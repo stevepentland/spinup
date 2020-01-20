@@ -1,47 +1,5 @@
 update_system = true
 
-[[file_downloads]]
-base_dir = '~/.local/share/fonts'
-
-[[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
-target = 'Ubuntu Mono Nerd Font Complete.ttf'
-
-[[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete%20Mono.ttf'
-target = 'Ubuntu Mono Nerd Font Complete Mono.ttf'
-
-[[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Inconsolata/complete/Inconsolata%20Regular%20Nerd%20Font%20Complete.ttf'
-target = 'Inconsolata Regular Nerd Font Complete.ttf'
-
-[[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Inconsolata/complete/Inconsolata%20Regular%20Nerd%20Font%20Complete%20Mono.ttf'
-target = 'Inconsolata Regular Nerd Font Complete Mono.ttf'
-
-[[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete.ttf'
-target = 'Sauce Code Pro Nerd Font Complete.ttf'
-
-[[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete%20Mono.ttf'
-target = 'Sauce Code Pro Nerd Font Complete Mono.ttf'
-
-[[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/complete/Fura%20Code%20Regular%20Nerd%20Font%20Complete.ttf'
-target = 'Fura Code Regular Nerd Font Complete.ttf'
-
-[[file_downloads.files]]
-source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/complete/Fura%20Code%20Regular%20Nerd%20Font%20Complete%20Mono.ttf'
-target = 'Fura Code Regular Nerd Font Complete Mono.ttf'
-
-[file_downloads.after_complete]
-command = 'fc-cache'
-args = [
-    '-f',
-    '-v',
-]
-
 [package_list]
 base_packages = [
     'zsh',
@@ -75,14 +33,49 @@ packages = [
     'scdaemon',
     'pcsc-tools',
 ]
-[[snaps.alternate_snaps]]
-name = 'code'
-classic = true
 
-[[snaps.alternate_snaps]]
-name = 'shotcut'
-classic = true
+[[file_downloads]]
+base_dir = '~/.local/share/fonts'
 
+[file_downloads.after_complete]
+command = 'fc-cache'
+needs_root = false
+args = [
+    '-f',
+    '-v',
+]
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf'
+target = 'Ubuntu Mono Nerd Font Complete.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete%20Mono.ttf'
+target = 'Ubuntu Mono Nerd Font Complete Mono.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Inconsolata/complete/Inconsolata%20Regular%20Nerd%20Font%20Complete.ttf'
+target = 'Inconsolata Regular Nerd Font Complete.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Inconsolata/complete/Inconsolata%20Regular%20Nerd%20Font%20Complete%20Mono.ttf'
+target = 'Inconsolata Regular Nerd Font Complete Mono.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete.ttf'
+target = 'Sauce Code Pro Nerd Font Complete.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete%20Mono.ttf'
+target = 'Sauce Code Pro Nerd Font Complete Mono.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/complete/Fura%20Code%20Regular%20Nerd%20Font%20Complete.ttf'
+target = 'Fura Code Regular Nerd Font Complete.ttf'
+
+[[file_downloads.files]]
+source = 'https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/complete/Fura%20Code%20Regular%20Nerd%20Font%20Complete%20Mono.ttf'
+target = 'Fura Code Regular Nerd Font Complete Mono.ttf'
 [snaps.standard_snaps]
 names = [
     'postman',
@@ -91,4 +84,87 @@ names = [
     'discord',
     'spotify',
     'firefox',
+]
+
+[[snaps.alternate_snaps]]
+name = 'code'
+classic = true
+channel = 'stable'
+
+[[snaps.alternate_snaps]]
+name = 'shotcut'
+classic = true
+channel = 'stable'
+
+[[custom_commands]]
+command = 'git'
+needs_root = false
+args = [
+    'clone',
+    'https://github.com/tmux-plugins/tpm',
+    '~/.tmux/plugins/tpm',
+]
+
+[[command_sets]]
+name = 'chezmoi'
+
+[[command_sets.commands]]
+id = 0
+command = 'curl'
+needs_root = false
+args = [
+    '-fsL',
+    'https://git.io/chezmoi',
+    '|',
+    'sh',
+]
+
+[[command_sets.commands]]
+id = 1
+command = '~/bin/chezmoi'
+needs_root = false
+args = [
+    'init',
+    'https://github.com/stevepentland/dotfiles.git',
+]
+
+[[command_sets]]
+name = 'aur_packages'
+
+[[command_sets.commands]]
+id = 0
+command = 'pacman'
+needs_root = true
+args = [
+    '-S',
+    '--noconfirm',
+    '--needed',
+    'base-devel',
+]
+
+[[command_sets.commands]]
+id = 1
+command = 'pacman'
+needs_root = true
+args = [
+    '-S',
+    '--noconfirm',
+    'yay',
+]
+
+[[command_sets.commands]]
+id = 2
+command = 'yay'
+needs_root = true
+args = ['-Sy']
+
+[[command_sets.commands]]
+id = 3
+command = 'yay'
+needs_root = true
+args = [
+    '-S',
+    '--noconfirm',
+    'insync',
+    'google-chrome',
 ]

@@ -17,12 +17,12 @@ pub struct CustomCommand {
     /// The command to run, it will be passed to `sh`
     pub command: String,
 
-    /// Any arguments to pass to the command
-    pub args: Option<Vec<String>>,
-
     /// Whether this command needs root privileges to run
     #[serde(default)]
     pub needs_root: bool,
+
+    /// Any arguments to pass to the command
+    pub args: Option<Vec<String>>,
 }
 
 impl CustomCommand {

@@ -63,3 +63,34 @@ pub async fn run_app(run_config: RunConfig) -> Result<()> {
 
     Ok(())
 }
+
+#[doc(hidden)]
+pub fn generate_configurations(source_format: &str) {
+    use std::fs::File;
+    use std::io::Write;
+
+    let config =
+        configuration::read_in_config(&format!("examples/sample.{}", source_format)).unwrap();
+
+    println!("{:#?}", config);
+    match source_format {
+        "json" => {
+            let mut t_file = File::create("examples/sample.toml").unwrap();
+            let _ = t_file.write(toml::to_string_pretty(&config).unwrap().as_bytes());
+            let mut y_file = File::create("examples/sample.yml").unwrap();
+            let _ = y_file.write(serde_yaml::to_string(&config).unwrap().as_bytes());
+        }
+        "yml" => {
+            let mut t_file = File::create("examples/sample.toml").unwrap();
+            let _ = t_file.write(toml::to_string_pretty(&config).unwrap().as_bytes());
+            let mut j_file = File::create("examples/sample.json").unwrap();
+            let _ = j_file.write(serde_json::to_string_pretty(&config).unwrap().as_bytes());
+        }
+        _ => {
+            let mut y_file = File::create("examples/sample.yml").unwrap();
+            let _ = y_file.write(serde_yaml::to_string(&config).unwrap().as_bytes());
+            let mut j_file = File::create("examples/sample.json").unwrap();
+            let _ = j_file.write(serde_json::to_string_pretty(&config).unwrap().as_bytes());
+        }
+    }
+}

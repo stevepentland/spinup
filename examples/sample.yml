@@ -1,4 +1,5 @@
 ---
+update_system: true
 package_list:
   base_packages:
     - zsh
@@ -30,10 +31,10 @@ file_downloads:
   - base_dir: ~/.local/share/fonts
     after_complete:
       command: fc-cache
+      needs_root: false
       args:
         - "-f"
         - "-v"
-      needs_root: false
     files:
       - source: "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/UbuntuMono/Regular/complete/Ubuntu%20Mono%20Nerd%20Font%20Complete.ttf"
         target: Ubuntu Mono Nerd Font Complete.ttf
@@ -67,4 +68,57 @@ snaps:
     - name: shotcut
       classic: true
       channel: stable
-update_system: true
+custom_commands:
+  - command: git
+    needs_root: false
+    args:
+      - clone
+      - "https://github.com/tmux-plugins/tpm"
+      - ~/.tmux/plugins/tpm
+command_sets:
+  - name: chezmoi
+    commands:
+      - id: 0
+        command: curl
+        needs_root: false
+        args:
+          - "-fsL"
+          - "https://git.io/chezmoi"
+          - "|"
+          - sh
+      - id: 1
+        command: ~/bin/chezmoi
+        needs_root: false
+        args:
+          - init
+          - "https://github.com/stevepentland/dotfiles.git"
+  - name: aur_packages
+    commands:
+      - id: 0
+        command: pacman
+        needs_root: true
+        args:
+          - "-S"
+          - "--noconfirm"
+          - "--needed"
+          - base-devel
+      - id: 1
+        command: pacman
+        needs_root: true
+        args:
+          - "-S"
+          - "--noconfirm"
+          - yay
+      - id: 2
+        command: yay
+        needs_root: true
+        args:
+          - "-Sy"
+      - id: 3
+        command: yay
+        needs_root: true
+        args:
+          - "-S"
+          - "--noconfirm"
+          - insync
+          - google-chrome

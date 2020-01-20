@@ -20,6 +20,9 @@ pub struct OrderedCommand {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CommandSet {
+    /// The name of this set for identification
+    pub(crate) name: String,
+
     /// The set of commands to run in the specified order
     pub(crate) commands: Vec<OrderedCommand>,
 }
@@ -103,6 +106,7 @@ mod tests {
     #[test]
     fn check_validate_duplicate_ids() {
         let command_set = CommandSet {
+            name: "test".to_string(),
             commands: vec![
                 OrderedCommand {
                     id: 1,
@@ -125,6 +129,7 @@ mod tests {
     #[test]
     fn check_validate_ok() {
         let command_set = CommandSet {
+            name: "test".to_string(),
             commands: vec![
                 OrderedCommand {
                     id: 1,

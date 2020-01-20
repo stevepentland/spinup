@@ -40,7 +40,10 @@
       "base_dir": "~/.local/share/fonts",
       "after_complete": {
         "command": "fc-cache",
-        "args": ["-f", "-v"],
+        "args": [
+          "-f",
+          "-v"
+        ],
         "needs_root": false
       },
       "files": [
@@ -103,5 +106,85 @@
       }
     ]
   },
+  "command_sets": [
+    {
+      "name": "chezmoi",
+      "commands": [
+        {
+          "id": 0,
+          "command": "curl",
+          "args": [
+            "-fsL",
+            "https://git.io/chezmoi",
+            "|",
+            "sh"
+          ]
+        },
+        {
+          "id": 1,
+          "command": "~/bin/chezmoi",
+          "args": [
+            "init",
+            "https://github.com/stevepentland/dotfiles.git"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "aur_packages",
+      "commands": [
+        {
+          "id": 0,
+          "command": "pacman",
+          "args": [
+            "-S",
+            "--noconfirm",
+            "--needed",
+            "base-devel"
+          ],
+          "needs_root": true
+        },
+        {
+          "id": 1,
+          "command": "pacman",
+          "args": [
+            "-S",
+            "--noconfirm",
+            "yay"
+          ],
+          "needs_root": true
+        },
+        {
+          "id": 2,
+          "command": "yay",
+          "args": [
+            "-Sy"
+          ],
+          "needs_root": true
+        },
+        {
+          "id": 3,
+          "command": "yay",
+          "args": [
+            "-S",
+            "--noconfirm",
+            "insync",
+            "google-chrome"
+          ],
+          "needs_root": true
+        }
+      ]
+    }
+  ],
+  "custom_commands": [
+    {
+      "command": "git",
+      "args": [
+        "clone",
+        "https://github.com/tmux-plugins/tpm",
+        "~/.tmux/plugins/tpm"
+      ]
+    }
+  ],
   "update_system": true
 }

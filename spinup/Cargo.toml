@@ -4,6 +4,7 @@ version = '0.2.0'
 authors = ['Steve Pentland <stevepentland@gmail.com>']
 edition = '2018'
 license = 'MIT'
+default-run = 'spinup'
 
 [dependencies]
 clap = '2.33'
@@ -15,3 +16,7 @@ path = '../libspinup'
 [dependencies.tokio]
 version = '0.2'
 features = ['macros']
+
+[[bin]]
+name = 'generate'
+path = 'src/utils/generate/main.rs'
