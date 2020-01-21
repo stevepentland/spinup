@@ -3,20 +3,23 @@
 
 use libc;
 
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 use crate::configuration::SystemDetails;
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 mod custom_commands;
 mod file_downloads;
 mod packages;
+mod runcore;
 mod snap;
 
 pub use custom_commands::run_custom_commands;
 pub use file_downloads::execute_download_operations;
 pub use packages::install_packages;
 pub use snap::install_snap_packages;
+
+use runcore::internal_runner;
 
 /// The `RunnableOperation` trait represents those operations that will
 /// be executed as shell processes. This includes package installs,
@@ -83,53 +86,62 @@ fn run_command(runnable: &impl RunnableOperation, system_details: SystemDetails)
         }
     };
 
-    let mut command = Command::new(base_command);
+    let mut args: Vec<String> = Vec::new();
 
     if let Some(arg) = first_arg {
-        command.arg(arg);
+        args.push(arg.to_string());
     }
 
-    let args = runnable.args(system_details).unwrap_or_default();
+    args.extend(
+        runnable
+            .args(system_details)
+            .unwrap_or_default()
+            .into_iter(),
+    );
 
-    debug!("Running command: {} {:#?}", &command_name, &args);
-
-    let status = command
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .args(args)
-        .spawn()?
-        .wait_with_output()?;
-
-    let command_run = first_arg.unwrap_or(base_command);
-
-    handle_process_output(command_run, status)
+    internal_runner(base_command, &args)
 }
 
-/// Helper that handles the process output of any run commands and offers
-/// logging capabilities.
-fn handle_process_output(cmd: &str, output: std::process::Output) -> Result<()> {
-    if let Some(code) = output.status.code() {
-        if code == 0 {
-            info!("Command execution of {} completed successfully", cmd);
-            Ok(())
-        } else {
-            use log::{max_level, LevelFilter};
-            warn!("Command execution of {} returned status of {}", cmd, code);
+#[cfg(test)]
+mod tests {
+    use super::*;
+    struct DummyRunnable {
+        command: String,
+        args: Option<Vec<String>>,
+        root: bool,
+    }
 
-            // Don't bother building trace output unless we're actually using it
-            if max_level() == LevelFilter::Trace {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                if stdout.len() > 0 {
-                    debug!("Stdout: \n{}", stdout);
-                }
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                if stderr.len() > 0 {
-                    debug!("Stderr: \n{}", stderr);
-                }
-            }
-            Err(Error::from(format!("Package manager returned status of '{}'.\nRun with higher verbosity to see more output", code)))
+    impl RunnableOperation for DummyRunnable {
+        fn command_name(&self, _system_details: SystemDetails) -> Result<String> {
+            Ok(self.command.clone())
         }
-    } else {
-        Ok(())
+        fn args(&self, _system_details: SystemDetails) -> Option<Vec<String>> {
+            self.args.clone()
+        }
+        fn needs_root(&self) -> bool {
+            self.root
+        }
+    }
+
+    #[test]
+    fn test_run_call_basic() {
+        let runnable = DummyRunnable {
+            command: "testing".to_string(),
+            args: Some(vec!["one".to_string(), "two".to_string()]),
+            root: false,
+        };
+
+        let res = run_command(&runnable, SystemDetails::default());
+        assert!(res.is_ok());
+
+        let cmd = runcore::passed_command();
+        assert!(cmd.is_some());
+        assert_eq!(cmd.unwrap(), "testing".to_string());
+
+        let args = runcore::passed_args();
+        assert!(args.is_some());
+        assert_eq!(args.unwrap(), vec!["one".to_string(), "two".to_string()]);
+
+        runcore::reset();
     }
 }

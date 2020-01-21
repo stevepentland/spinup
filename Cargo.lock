@@ -531,6 +531,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "libspinup"
 version = "0.2.0"
 dependencies = [
+ "cfg-if 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "dirs 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "flexi_logger 0.14.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",

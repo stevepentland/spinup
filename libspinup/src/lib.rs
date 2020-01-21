@@ -64,6 +64,7 @@ pub async fn run_app(run_config: RunConfig) -> Result<()> {
     Ok(())
 }
 
+#[cfg_attr(tarpaulin, skip)]
 #[doc(hidden)]
 pub fn generate_configurations(source_format: &str) {
     use std::fs::File;

@@ -1,6 +1,7 @@
 use clap::{App, Arg};
 use libspinup::generate_configurations;
 
+#[cfg_attr(tarpaulin, skip)]
 fn main() {
     let matches = App::new("Generate")
         .about("Util to generate from one config to the others")
