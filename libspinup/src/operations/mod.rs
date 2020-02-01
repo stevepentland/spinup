@@ -3,8 +3,6 @@
 
 use libc;
 
-use std::process::Command;
-
 use crate::configuration::SystemDetails;
 use crate::error::Result;
 
@@ -18,8 +16,6 @@ pub use custom_commands::run_custom_commands;
 pub use file_downloads::execute_download_operations;
 pub use packages::install_packages;
 pub use snap::install_snap_packages;
-
-use runcore::internal_runner;
 
 /// The `RunnableOperation` trait represents those operations that will
 /// be executed as shell processes. This includes package installs,
@@ -55,20 +51,6 @@ pub(crate) fn process_is_root() -> bool {
     }
 }
 
-/// Helper that will run `sudo -v` to obtain a prompt to enter a user's password.
-/// As a session with sudo lasts ~15 minutes, the user's authentication for this should
-/// serve for the entire time this application runs. Subsequent calls will not require
-/// password entry if we're still within the time limit.
-fn get_root() -> Result<()> {
-    let exit_status = Command::new("sudo").arg("-v").spawn()?.wait()?;
-
-    if exit_status.success() {
-        Ok(())
-    } else {
-        Err("Unable to authenticate for sudo".into())
-    }
-}
-
 /// Run the given `RunnableOperation`, returning an empty result if there were no errors
 ///
 /// # Arguments:
@@ -79,7 +61,7 @@ fn run_command(runnable: &impl RunnableOperation, system_details: SystemDetails)
     let command_name = runnable.command_name(system_details)?;
     let (base_command, first_arg) = {
         if runnable.needs_root() {
-            get_root()?;
+            runcore::get_root()?;
             ("sudo", Some(&command_name[..]))
         } else {
             (&command_name[..], None)
@@ -99,7 +81,7 @@ fn run_command(runnable: &impl RunnableOperation, system_details: SystemDetails)
             .into_iter(),
     );
 
-    internal_runner(base_command, &args)
+    runcore::internal_runner(base_command, &args)
 }
 
 #[cfg(test)]
@@ -130,18 +112,35 @@ mod tests {
             args: Some(vec!["one".to_string(), "two".to_string()]),
             root: false,
         };
-
         let res = run_command(&runnable, SystemDetails::default());
         assert!(res.is_ok());
-
         let cmd = runcore::passed_command();
         assert!(cmd.is_some());
         assert_eq!(cmd.unwrap(), "testing".to_string());
-
         let args = runcore::passed_args();
         assert!(args.is_some());
         assert_eq!(args.unwrap(), vec!["one".to_string(), "two".to_string()]);
+        assert!(!runcore::called_root())
+    }
 
-        runcore::reset();
+    #[test]
+    fn test_run_call_root() {
+        let runnable = DummyRunnable {
+            command: "testing".to_string(),
+            args: Some(vec!["one".to_string()]),
+            root: true,
+        };
+        let res = run_command(&runnable, SystemDetails::default());
+        assert!(res.is_ok());
+        let cmd = runcore::passed_command();
+        assert!(cmd.is_some());
+        assert_eq!(cmd.unwrap(), "sudo".to_string());
+        let args = runcore::passed_args();
+        assert!(args.is_some());
+        assert_eq!(
+            args.unwrap(),
+            vec!["testing".to_string(), "one".to_string()]
+        );
+        assert!(runcore::called_root());
     }
 }

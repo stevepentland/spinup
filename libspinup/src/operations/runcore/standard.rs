@@ -2,7 +2,8 @@ use std::process::{Command, Stdio};
 
 use crate::error::{Error, Result};
 
-pub fn standard_runner(command: &str, args: &[String]) -> Result<()> {
+#[allow(dead_code)]
+pub fn internal_runner(command: &str, args: &[String]) -> Result<()> {
     let status = Command::new(command)
         .args(args)
         .stdout(Stdio::piped())
@@ -17,6 +18,21 @@ pub fn standard_runner(command: &str, args: &[String]) -> Result<()> {
         &status.stdout,
         &status.stderr,
     )
+}
+
+/// Helper that will run `sudo -v` to obtain a prompt to enter a user's password.
+/// As a session with sudo lasts ~15 minutes, the user's authentication for this should
+/// serve for the entire time this application runs. Subsequent calls will not require
+/// password entry if we're still within the time limit.
+#[allow(dead_code)]
+pub fn get_root() -> Result<()> {
+    let exit_status = Command::new("sudo").arg("-v").spawn()?.wait()?;
+
+    if exit_status.success() {
+        Ok(())
+    } else {
+        Err("Unable to authenticate for sudo".into())
+    }
 }
 
 /// Helper that handles the process output of any run commands and offers logging capabilities.
@@ -49,5 +65,16 @@ fn handle_process_output(
         }
     } else {
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_process_output_ok_none_status() {
+        let actual = handle_process_output("test", None, &[], &[]);
+        assert!(actual.is_ok());
     }
 }
