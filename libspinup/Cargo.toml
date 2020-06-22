@@ -20,7 +20,7 @@ sys-info = "0.5.9"
 toml = "0.5.6"
 
 [dependencies.serde]
-version = "1.0.104"
+version = "1.0.114"
 features = ['derive']
 
 [dependencies.tokio]
