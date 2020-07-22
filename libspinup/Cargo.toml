@@ -24,7 +24,7 @@ version = "1.0.104"
 features = ['derive']
 
 [dependencies.tokio]
-version = "0.2.11"
+version = "0.2.22"
 features = ['macros']
 
 [dev-dependencies]
