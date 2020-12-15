@@ -14,7 +14,7 @@ log = '0.4'
 path = '../libspinup'
 
 [dependencies.tokio]
-version = '0.2'
+version = '0.3'
 features = ['macros']
 
 [[bin]]
